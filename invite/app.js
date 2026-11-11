@@ -143,7 +143,6 @@
   const rsvpHeading = document.getElementById('rsvp-heading');
   const editingBanner = document.getElementById('editing-mode-banner');
   const editingBannerText = document.getElementById('editing-banner-text');
-  const btnCancelEdit = document.getElementById('btn-cancel-edit');
   const detailsFieldset = document.getElementById('rsvp-details-section');
   const nameInput = document.getElementById('rsvp-name');
   const emailInput = document.getElementById('rsvp-email');
@@ -384,11 +383,6 @@
       window.history.replaceState({}, '', cleanUrl.toString());
     }
   }
-
-  btnCancelEdit.addEventListener('click', () => {
-    clearEditMode();
-    nameInput.focus();
-  });
 
   // Consistent ARIA + Fallback Validation (from modern-web-guidance)
   function initAccessibleValidation() {

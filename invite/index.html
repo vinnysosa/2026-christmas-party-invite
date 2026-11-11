@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Satisfy&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
-  <script defer src="../config.js"></script>
-  <script defer src="./app.js"></script>
+  <link rel="stylesheet" href="./styles.css?v=4">
+  <script defer src="../config.js?v=4"></script>
+  <script defer src="./app.js?v=4"></script>
 </head>
 <body>
   <canvas id="snow-canvas" aria-hidden="true"></canvas>
@@ -82,13 +82,12 @@
         <div class="card-header">
           <h2 id="rsvp-heading">Kindly RSVP</h2>
           <p class="card-intro" id="rsvp-intro">
-            Please let us know if you can join us below. Already RSVP'd? Use the edit link in your confirmation email—or submit again with the same email address to change your party size, dish, or cancel.
+            Please let us know if you can join us below. <strong>Need to edit your RSVP?</strong> Use the link in your confirmation email.
           </p>
         </div>
 
         <div id="editing-mode-banner" class="editing-banner" hidden role="status">
           <span id="editing-banner-text">✏️ Editing your saved RSVP. Change any details below (or switch Attending to "No" to cancel) and click Save.</span>
-          <button type="button" id="btn-cancel-edit" class="btn btn-ghost btn-sm">Start Fresh</button>
         </div>
 
         <form id="rsvp-form" novalidate aria-labelledby="rsvp-heading">
