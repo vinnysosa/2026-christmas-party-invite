@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <title>2026 Christmas with the Sosa's — Invite &amp; RSVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Satisfy&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="../config.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+
+  <div class="page-shell">
+    <header class="hero card hero-card">
+      <div class="hero-top-meta">
+        <span class="eyebrow" id="event-date-badge">Saturday, December 5, 2026 • 6:00 PM</span>
+      </div>
+      <h1 id="event-title">2026 Christmas with the Sosa's</h1>
+      <p class="hero-subtitle" id="event-subtitle">
+        We celebrate Christmas so that's our anchor holiday, but if you're invited, you're welcome no matter how you ring in the season.
+      </p>
+
+      <div class="event-meta-row">
+        <a
+          id="event-location"
+          class="location-pill"
+          href="https://maps.google.com/?q=8700+Green+Apple+Court,+Wake+Forest,+NC"
+          target="_blank"
+          rel="noopener"
+        >
+          <span aria-hidden="true">📍</span>
+          <span>8700 Green Apple Court, Wake Forest, NC</span>
+        </a>
+      </div>
+
+      <div class="callout-banner white-elephant-banner" id="white-elephant-banner">
+        <p class="callout-title">🎁 White Elephant Gift Exchange Returns!</p>
+        <p id="white-elephant-announcement">
+          We'll be doing our White Elephant gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.
+        </p>
+        <p class="callout-links">
+          <a
+            id="white-elephant-rules-link"
+            href="https://www.whiteelephantrules.com/"
+            target="_blank"
+            rel="noopener"
+          >
+            New to White Elephant? Read how it works →
+          </a>
+        </p>
+      </div>
+
+      <nav class="hero-actions" aria-label="Quick navigation">
+        <a href="#rsvp-section" id="jump-rsvp" class="btn btn-primary">RSVP Now</a>
+        <a href="#contributions-section" id="jump-contributions" class="btn btn-secondary">See Drinks, Dishes &amp; Treats</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <div id="mock-mode-banner" class="dev-banner" hidden role="status">
+        <strong>Local Preview Mode:</strong> Connect <code>GAS_WEB_APP_URL</code> in <code>config.js</code> for live Google Sheet sync.
+      </div>
+
+      <!-- RSVP Card -->
+      <section id="rsvp-section" class="card" aria-labelledby="rsvp-heading">
+        <div class="card-header">
+          <h2 id="rsvp-heading">Kindly RSVP</h2>
+          <p class="card-intro">Please let us know if you can join us by filling out the quick form below.</p>
+        </div>
+
+        <form id="rsvp-form" novalidate aria-labelledby="rsvp-heading">
+          <!-- Honeypot anti-bot field -->
+          <div class="visually-hidden" aria-hidden="true">
+            <label for="rsvp-website">Website</label>
+            <input type="text" id="rsvp-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="rsvp-name">Your Name <span class="req-mark" aria-hidden="true">*</span></label>
+            <input
+              type="text"
+              id="rsvp-name"
+              name="name"
+              required
+              autocomplete="name"
+              enterkeyhint="next"
+              data-error="name-error"
+              placeholder="e.g., Jordan &amp; Taylor Smith"
+            >
+            <div id="name-error" class="error-msg">
+              <span role="img" aria-label="Error">❌</span> Please enter your name or family name.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="rsvp-email">Email Address <span class="req-mark" aria-hidden="true">*</span></label>
+            <span id="email-hint" class="hint">We'll send you a confirmation &amp; calendar invite</span>
+            <input
+              type="email"
+              id="rsvp-email"
+              name="email"
+              required
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="next"
+              aria-describedby="email-hint"
+              data-error="email-error"
+              placeholder="you@example.com"
+            >
+            <div id="email-error" class="error-msg">
+              <span role="img" aria-label="Error">❌</span> Enter an email address in the format you@example.com.
+            </div>
+          </div>
+
+          <fieldset class="field fieldset-plain" id="attending-fieldset">
+            <legend>Will you be attending? <span class="req-mark" aria-hidden="true">*</span></legend>
+            <div class="option-grid option-grid-2">
+              <label class="option-card" for="attending-yes">
+                <input
+                  type="radio"
+                  id="attending-yes"
+                  name="attending"
+                  value="Yes"
+                  required
+                  data-error="attending-error"
+                  aria-controls="rsvp-details-section"
+                  aria-expanded="false"
+                >
+                <span class="option-text">
+                  <strong>Yes, we'll be there!</strong>
+                  <small>Saturday, Dec 5 @ 6:00 PM</small>
+                </span>
+              </label>
+
+              <label class="option-card" for="attending-no">
+                <input
+                  type="radio"
+                  id="attending-no"
+                  name="attending"
+                  value="No"
+                  required
+                  data-error="attending-error"
+                >
+                <span class="option-text">
+                  <strong>No, can't make it</strong>
+                  <small>Send warm wishes instead</small>
+                </span>
+              </label>
+            </div>
+            <div id="attending-error" class="error-msg">
+              <span role="img" aria-label="Error">❌</span> Please let us know whether you'll be attending.
+            </div>
+          </fieldset>
+
+          <!-- Step 2: Shown dynamically when attending === "Yes" -->
+          <fieldset id="rsvp-details-section" class="rsvp-details" hidden disabled>
+            <legend class="details-legend">RSVP Details</legend>
+
+            <div class="field">
+              <label for="rsvp-party-size">How many in your party? <span class="req-mark" aria-hidden="true">*</span></label>
+              <select id="rsvp-party-size" name="partySize" required data-error="party-size-error">
+                <option value="" disabled selected>Select number of guests...</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6+</option>
+              </select>
+              <div id="party-size-error" class="error-msg">
+                <span role="img" aria-label="Error">❌</span> Please select how many people are in your party.
+              </div>
+            </div>
+
+            <fieldset class="field fieldset-plain">
+              <legend>
+                Participating in the White Elephant Gift Exchange?
+                <span class="legend-subtext">
+                  We're doing it again this year! Average gift value of no more than $40.
+                  <a href="https://www.whiteelephantrules.com/" target="_blank" rel="noopener">How it works</a>
+                </span>
+              </legend>
+              <div class="option-grid" id="white-elephant-options"></div>
+            </fieldset>
+
+            <div class="callout-banner hosts-note-banner" id="hosts-note-banner">
+              <p class="callout-title">🍷 Food &amp; Drinks Provided — Zero Obligation to Bring Anything</p>
+              <p id="hosts-note-text">
+                We will have Bogle Merlot and a Chardonnay on hand, plus plenty of food and dessert for everyone! You don't need to bring a thing—as always, we'll have enough food for all. However, we encourage you to bring your favorite wine, punch, or beer (or a dish, appetizer, or dessert if you wish), and please let us know below so we can plan accordingly and minimize food waste.
+              </p>
+            </div>
+
+            <fieldset class="field fieldset-plain">
+              <legend>
+                Planning to bring a drink, dish, or treat? <span class="optional-tag">(Optional)</span>
+              </legend>
+              <div class="option-grid" id="bringing-options"></div>
+            </fieldset>
+
+            <div class="field">
+              <label for="rsvp-bringing-details">
+                If you'd like to bring a drink, dish, or treat, what are you thinking of bringing? <span class="optional-tag">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                id="rsvp-bringing-details"
+                name="bringingDetails"
+                enterkeyhint="next"
+                placeholder="e.g., Cabernet, Craft Beer, Holiday Punch, Mac &amp; Cheese, Cookies..."
+              >
+            </div>
+
+            <div class="field">
+              <label for="rsvp-notes">Dietary Needs or Notes <span class="optional-tag">(Optional)</span></label>
+              <textarea
+                id="rsvp-notes"
+                name="notes"
+                rows="2"
+                placeholder="Any allergies, dietary restrictions, or notes for Jonnin &amp; Vinny?"
+              ></textarea>
+            </div>
+          </fieldset>
+
+          <div id="form-status" class="form-status" role="status" aria-live="polite" hidden></div>
+
+          <div class="form-actions">
+            <button type="submit" id="rsvp-submit-btn" class="btn btn-primary btn-full">
+              <span class="btn-label">Submit RSVP</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Confirmation Panel -->
+        <div id="rsvp-confirmation" class="confirmation-panel" hidden tabindex="-1">
+          <div class="confirmation-badge" aria-hidden="true">🎄</div>
+          <h3>RSVP Received!</h3>
+          <p id="confirmation-message">
+            Thanks for letting us know! We'll see you there otherwise we wish you the happiest seasons greetings and a Merry Christmas!
+          </p>
+          <p id="confirmation-email-note" class="hint" hidden></p>
+
+          <div id="confirmation-calendar-actions" class="calendar-actions" hidden>
+            <a id="btn-google-cal" class="btn btn-green" target="_blank" rel="noopener">
+              📅 Add to Google Calendar
+            </a>
+            <button type="button" id="btn-ics-cal" class="btn btn-secondary">
+              🍎 Add to Apple / Outlook Calendar (.ics)
+            </button>
+          </div>
+
+          <button type="button" id="btn-reset-form" class="btn btn-ghost">
+            Submit Another RSVP
+          </button>
+        </div>
+      </section>
+
+      <!-- FAQ Card -->
+      <section id="faq-section" class="card" aria-labelledby="faq-heading">
+        <div class="card-header">
+          <h2 id="faq-heading">Frequently Asked Questions</h2>
+        </div>
+        <div id="faq-list" class="faq-list"></div>
+      </section>
+
+      <!-- Live Drinks, Dishes, or Treats Card -->
+      <section id="contributions-section" class="card" aria-labelledby="contributions-heading">
+        <div class="card-header contributions-header">
+          <div>
+            <h2 id="contributions-heading">Drinks, Dishes, or Treats Guests Are Bringing</h2>
+            <p class="card-intro">
+              You don't need to bring a thing—we'll have plenty of food, Bogle Merlot, and Chardonnay! If you wish to bring a favorite drink, dish, or treat, here's what others have mentioned so far so we can minimize food waste:
+            </p>
+          </div>
+          <button type="button" id="btn-refresh-contributions" class="btn btn-ghost btn-sm">
+            ↻ Refresh
+          </button>
+        </div>
+
+        <div class="filter-bar" role="group" aria-label="Filter items by category">
+          <button type="button" class="filter-pill is-active" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="filter-pill" data-filter="drinks" aria-pressed="false">Wine / Drinks</button>
+          <button type="button" class="filter-pill" data-filter="appetizer" aria-pressed="false">Appetizer</button>
+          <button type="button" class="filter-pill" data-filter="dish" aria-pressed="false">Dish</button>
+          <button type="button" class="filter-pill" data-filter="dessert" aria-pressed="false">Dessert / Treat</button>
+        </div>
+
+        <div id="contributions-status" class="contributions-status" role="status" aria-live="polite" hidden></div>
+
+        <div tabindex="0" role="region" aria-labelledby="contributions-heading" class="table-wrapper">
+          <table class="contributions-table" id="contributions-table">
+            <thead>
+              <tr>
+                <th scope="col">Guest / Family</th>
+                <th scope="col">Category</th>
+                <th scope="col">Drink, Dish, or Treat</th>
+              </tr>
+            </thead>
+            <tbody id="contributions-list"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>2026 Christmas with the Sosa's • Wake Forest, NC</p>
+    </footer>
+  </div>
+</body>
+</html>

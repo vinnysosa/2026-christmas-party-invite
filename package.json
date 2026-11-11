@@ -1,0 +1,15 @@
+{
+  "name": "2026-christmas-party-invite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "2026 Christmas with the Sosa's — RSVP Web App (GitHub Pages + Google Apps Script + Google Sheets)",
+  "scripts": {
+    "clasp:user": "clasp -u personal show-authorized-user",
+    "clasp:login": "clasp -u personal login",
+    "clasp:create": "clasp -u personal create-script --type sheets --title \"2026 Christmas Party RSVP\" --rootDir ./gas",
+    "clasp:push": "clasp -u personal push",
+    "clasp:deploy": "clasp -u personal create-deployment --description \"Production RSVP API\"",
+    "clasp:open": "clasp -u personal open-script",
+    "serve": "python3 -m http.server 8080"
+  }
+}

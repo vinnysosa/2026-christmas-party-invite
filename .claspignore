@@ -1,0 +1,5 @@
+# Ignore everything except the gas/ directory (when rootDir is set to "gas" in .clasp.json)
+**/**
+!gas/**
+!appsscript.json
+!*.gs
