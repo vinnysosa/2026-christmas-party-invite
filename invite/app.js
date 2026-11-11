@@ -218,6 +218,8 @@
   const whiteElephantContainer = document.getElementById('white-elephant-options');
   const bringingContainer = document.getElementById('bringing-options');
   const bringingDetailsInput = document.getElementById('rsvp-bringing-details');
+  const bringingReqMark = document.getElementById('bringing-details-req-mark');
+  const bringingOptTag = document.getElementById('bringing-details-opt-tag');
   const notesInput = document.getElementById('rsvp-notes');
   const submitBtn = document.getElementById('rsvp-submit-btn');
   const submitBtnLabel = submitBtn.querySelector('.btn-label');
@@ -303,6 +305,7 @@
       input.id = id;
       input.name = 'bringingCategories';
       input.value = opt;
+      input.addEventListener('change', syncBringingRequirement);
 
       const span = document.createElement('span');
       span.className = 'option-text';
@@ -365,13 +368,30 @@
     });
   }
 
-  // Conditional Step 2 Toggle
+  // Conditional Step 2 Toggle & Bringing Details Requirement
+  function syncBringingRequirement() {
+    const attending = attendingYes.checked ? 'Yes' : '';
+    const anyBringingChecked =
+      attending === 'Yes' &&
+      Array.from(bringingContainer.querySelectorAll('input[type="checkbox"]')).some(
+        (cb) => cb.checked
+      );
+    bringingDetailsInput.required = anyBringingChecked;
+    if (bringingReqMark) bringingReqMark.hidden = !anyBringingChecked;
+    if (bringingOptTag) bringingOptTag.hidden = anyBringingChecked;
+    if (!anyBringingChecked) {
+      bringingDetailsInput.classList.remove('user-invalid-fallback');
+      bringingDetailsInput.setAttribute('aria-invalid', 'false');
+    }
+  }
+
   function syncAttendingSection() {
     const attending = attendingYes.checked ? 'Yes' : attendingNo.checked ? 'No' : '';
     const showDetails = attending === 'Yes';
     detailsFieldset.hidden = !showDetails;
     detailsFieldset.disabled = !showDetails;
     attendingYes.setAttribute('aria-expanded', String(showDetails));
+    syncBringingRequirement();
   }
 
   attendingYes.addEventListener('change', syncAttendingSection);
@@ -416,6 +436,7 @@
     bringBoxes.forEach((cb) => {
       cb.checked = selectedCats.includes(cb.value);
     });
+    syncBringingRequirement();
 
     bringingDetailsInput.value = rsvp.bringingDetails || '';
     notesInput.value = rsvp.notes || '';
@@ -790,7 +811,7 @@
       const tr = document.createElement('tr');
       tr.className = 'empty-row';
       const td = document.createElement('td');
-      td.colSpan = 3;
+      td.colSpan = 2;
       td.textContent =
         activeFilter === 'all'
           ? "No guest items listed yet—we'll be providing food, dessert, Bogle Merlot & Chardonnay as usual!"
@@ -807,22 +828,11 @@
       th.scope = 'row';
       th.textContent = item.guestName || 'Guest';
 
-      const tdCat = document.createElement('td');
-      const pillStack = document.createElement('div');
-      pillStack.className = 'category-pill-stack';
-      const pills = parseCategoryPills(item.category);
-      for (const pillText of pills) {
-        const badge = document.createElement('span');
-        badge.className = 'category-badge';
-        badge.textContent = pillText;
-        pillStack.appendChild(badge);
-      }
-      tdCat.appendChild(pillStack);
-
       const tdDesc = document.createElement('td');
+      const pills = parseCategoryPills(item.category);
       tdDesc.textContent = formatDescriptionText(item.itemDescription || pills.join(', '));
 
-      tr.append(th, tdCat, tdDesc);
+      tr.append(th, tdDesc);
       contributionsList.appendChild(tr);
     }
   }
@@ -884,8 +894,22 @@
     }
   }
 
+  // Prevent hero anchor links from setting a sticky URL hash that jumps on mobile layout changes
+  document.querySelectorAll('#jump-rsvp, #jump-contributions').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const targetId = (link.getAttribute('href') || '').replace(/^#/, '');
+      const targetEl = targetId ? document.getElementById(targetId) : null;
+      if (targetEl) {
+        e.preventDefault();
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
   filterPills.forEach((pill) => {
-    pill.addEventListener('click', () => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const savedScrollY = window.scrollY;
       activeFilter = pill.dataset.filter || 'all';
       filterPills.forEach((p) => {
         const isCurrent = p === pill;
@@ -893,6 +917,7 @@
         p.setAttribute('aria-pressed', String(isCurrent));
       });
       renderContributions();
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
     });
   });
 

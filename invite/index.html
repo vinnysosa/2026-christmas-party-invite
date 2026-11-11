@@ -30,9 +30,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=9">
-  <script defer src="../config.js?v=9"></script>
-  <script defer src="./app.js?v=9"></script>
+  <link rel="stylesheet" href="./styles.css?v=10">
+  <script defer src="../config.js?v=10"></script>
+  <script defer src="./app.js?v=10"></script>
 </head>
 <body>
   <canvas id="snow-canvas" aria-hidden="true"></canvas>
@@ -61,7 +61,7 @@
       </div>
 
       <div class="callout-banner white-elephant-banner" id="white-elephant-banner">
-        <p class="callout-title">🎁 White Elephant Gift Exchange Returns!</p>
+        <p class="callout-title">🎁 White Elephant Returns!</p>
         <p id="white-elephant-announcement">
           We'll be doing our White Elephant gift exchange again this year! It is one wrapped gift per participating adult (average gift value of no more than $40). Gifts should be fun or funny, but please keep them family-friendly!
         </p>
@@ -92,8 +92,11 @@
       <section id="faq-section" class="card faq-card" aria-label="Frequently Asked Questions">
         <details class="faq-outer-drawer" id="faq-outer-drawer">
           <summary class="faq-outer-summary">
-            <span class="faq-outer-label">❓ Frequently Asked Questions</span>
-            <span class="faq-outer-hint">Food &amp; Drinks, Kids, White Elephant</span>
+            <div class="faq-outer-text">
+              <span class="faq-outer-label">❓ Frequently Asked Questions</span>
+              <span class="faq-outer-hint">Food &amp; Drinks, Kids, White Elephant</span>
+            </div>
+            <span class="faq-outer-chevron" aria-hidden="true">▾</span>
           </summary>
           <div id="faq-list" class="faq-list faq-outer-body"></div>
         </details>
@@ -204,8 +207,8 @@
 
             <div class="field-row-2">
               <div class="field">
-                <label for="rsvp-party-size">How many in your party? <span class="req-mark" aria-hidden="true">*</span></label>
-                <select id="rsvp-party-size" name="partySize" required data-error="party-size-error">
+                <label for="rsvp-party-size">Total in Party <span class="req-mark" aria-hidden="true">*</span></label>
+                <select id="rsvp-party-size" name="partySize" required aria-describedby="party-size-hint" data-error="party-size-error">
                   <option value="" disabled selected>Select total guests...</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -214,13 +217,14 @@
                   <option value="5">5</option>
                   <option value="6">6+</option>
                 </select>
+                <span id="party-size-hint" class="hint">Adults + kids combined</span>
                 <div id="party-size-error" class="error-msg">
-                  <span role="img" aria-label="Error">❌</span> Please select how many people are in your party.
+                  <span role="img" aria-label="Error">❌</span> Please select the total number of guests in your party.
                 </div>
               </div>
 
               <div class="field">
-                <label for="rsvp-kids-under-10">Kids under age 10? <span class="optional-tag">(Optional)</span></label>
+                <label for="rsvp-kids-under-10">Party members under 10?</label>
                 <select id="rsvp-kids-under-10" name="kidsUnder10" aria-describedby="kids-hint">
                   <option value="0" selected>0 (None)</option>
                   <option value="1">1</option>
@@ -245,7 +249,7 @@
             </fieldset>
 
             <div class="callout-banner hosts-note-banner" id="hosts-note-banner">
-              <p class="callout-title">🍷 Our Holiday Spread &amp; Favorite Sips</p>
+              <p class="callout-title">🍷 Dinner, Drinks &amp; Dessert</p>
               <p id="hosts-note-text">
                 We will be providing food, dessert, and wine (Bogle Merlot &amp; Chardonnay) as usual! If you feel the need to bring something—especially a favorite wine, punch, beer, or a go-to holiday dish or treat—please share it below so we can plan around it and avoid duplicates.
               </p>
@@ -272,15 +276,21 @@
 
             <div class="field">
               <label for="rsvp-bringing-details">
-                If you'd like to bring a drink, dish, or treat, what are you thinking of bringing? <span class="optional-tag">(Optional)</span>
+                What drink, dish, or treat are you thinking of bringing?
+                <span id="bringing-details-req-mark" class="req-mark" hidden aria-hidden="true">*</span>
+                <span id="bringing-details-opt-tag" class="optional-tag">(Optional)</span>
               </label>
               <input
                 type="text"
                 id="rsvp-bringing-details"
                 name="bringingDetails"
                 enterkeyhint="next"
+                data-error="bringing-details-error"
                 placeholder="e.g., Cabernet, Craft Beer, Holiday Punch, Mac &amp; Cheese, Cookies..."
               >
+              <div id="bringing-details-error" class="error-msg">
+                <span role="img" aria-label="Error">❌</span> Please let us know what drink, dish, or treat you're planning to bring.
+              </div>
             </div>
 
             <div class="field">
@@ -362,7 +372,6 @@
             <thead>
               <tr>
                 <th scope="col">Guest / Family</th>
-                <th scope="col">Category</th>
                 <th scope="col">Drink, Dish, or Treat</th>
               </tr>
             </thead>

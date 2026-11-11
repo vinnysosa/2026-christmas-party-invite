@@ -112,13 +112,13 @@ function setupSheet() {
       'Email Address',
       'Your Name',
       'Will you be attending?',
-      'How many in your party?',
+      'Total in Party',
       'Bringing Category (Drink / Dish / Treat)',
       'Specific Drink, Dish, or Treat Details',
       'Participating in White Elephant? ($40 max avg)',
       'Notes / Dietary Needs',
       'Edit Token',
-      'Kids Under 10'
+      'Party Members Under 10'
     ]);
     responsesSheet.getRange(1, 1, 1, 11).setFontWeight('bold');
     responsesSheet.setFrozenRows(1);
@@ -324,6 +324,12 @@ function doPost(e) {
 
     if (!name || !attending) {
       return jsonResponse({ ok: false, error: 'Name and attendance selection are required.' });
+    }
+    if (attending === 'Yes' && categoryList.length > 0 && !bringingDetails) {
+      return jsonResponse({
+        ok: false,
+        error: 'Please let us know what drink, dish, or treat you are planning to bring.'
+      });
     }
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
