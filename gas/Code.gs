@@ -115,7 +115,7 @@ function setupSheet() {
       'How many in your party?',
       'Bringing Category (Drink / Dish / Treat)',
       'Specific Drink, Dish, or Treat Details',
-      'Participating in White Elephant (aka Dirty Santa)? ($40 max avg)',
+      'Participating in White Elephant? ($40 max avg)',
       'Notes / Dietary Needs',
       'Edit Token',
       'Kids Under 10'
@@ -469,10 +469,10 @@ function sendConfirmationEmail(rsvp) {
             <li><strong>Where:</strong> ${escapeHtml(EVENT_CONFIG.location)}</li>
             <li><strong>Party Size:</strong> ${escapeHtml(String(rsvp.partySize))}</li>
             ${kidsLine}
-            <li><strong>White Elephant (aka Dirty Santa) ($40 max avg value):</strong> ${escapeHtml(rsvp.whiteElephant || 'Not specified')}</li>
+            <li><strong>White Elephant ($40 max avg value):</strong> ${escapeHtml(rsvp.whiteElephant || 'Not specified')}</li>
             <li><strong>Bringing (Optional):</strong> ${escapeHtml(
               [rsvp.bringingCategories, rsvp.bringingDetails].filter(Boolean).join(' — ') ||
-                'Nothing needed — we have plenty of food, Bogle Merlot, and Chardonnay!'
+                'Just bringing yourselves! (Food, dessert, Bogle Merlot & Chardonnay provided as usual)'
             )}</li>
           </ul>
           <p style="margin:24px 0;">

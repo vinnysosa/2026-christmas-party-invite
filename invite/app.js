@@ -292,22 +292,6 @@
       input.name = 'bringingCategories';
       input.value = opt;
 
-      input.addEventListener('change', () => {
-        const allBoxes = Array.from(
-          bringingContainer.querySelectorAll('input[type="checkbox"]')
-        );
-        const isNothing = opt.startsWith('Nothing');
-        if (isNothing && input.checked) {
-          allBoxes.forEach((cb) => {
-            if (cb !== input) cb.checked = false;
-          });
-        } else if (!isNothing && input.checked) {
-          allBoxes.forEach((cb) => {
-            if (cb.value.startsWith('Nothing')) cb.checked = false;
-          });
-        }
-      });
-
       const span = document.createElement('span');
       span.className = 'option-text';
       const strong = document.createElement('strong');
@@ -703,7 +687,7 @@
       '&text=' + encodeURIComponent(ev.title) +
       '&dates=' + encodeURIComponent(`${ev.startIsoUtc}/${ev.endIsoUtc}`) +
       '&location=' + encodeURIComponent(ev.address) +
-      '&details=' + encodeURIComponent(`White Elephant (aka Dirty Santa, $40 max avg) & Event Details: ${inviteUrl}`)
+      '&details=' + encodeURIComponent(`White Elephant ($40 max avg) & Event Details: ${inviteUrl}`)
     );
   }
 
@@ -724,7 +708,7 @@
       `DTEND:${ev.endIsoUtc}`,
       `SUMMARY:${ev.title}`,
       `LOCATION:${escapedAddress}`,
-      `DESCRIPTION:We can't wait to celebrate with you! White Elephant (aka Dirty Santa) gift exchange ($40 max avg). Details: ${inviteUrl}`,
+      `DESCRIPTION:We can't wait to celebrate with you! White Elephant gift exchange ($40 max avg). Details: ${inviteUrl}`,
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\r\n');
@@ -767,7 +751,7 @@
 
     if (!allContributions.length) {
       const li = document.createElement('li');
-      li.textContent = "Nothing listed yet—and remember, you don't need to bring a thing!";
+      li.textContent = "No guest items listed yet—we'll have food, dessert, Bogle Merlot & Chardonnay ready as usual!";
       inlineContributionsList.appendChild(li);
       return;
     }
@@ -797,7 +781,7 @@
       td.colSpan = 3;
       td.textContent =
         activeFilter === 'all'
-          ? "No guest items listed yet—and remember, you don't need to bring a thing!"
+          ? "No guest items listed yet—we'll be providing food, dessert, Bogle Merlot & Chardonnay as usual!"
           : 'No items in this category yet.';
       tr.appendChild(td);
       contributionsList.appendChild(tr);
