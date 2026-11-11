@@ -3,7 +3,7 @@
  * Loaded by /invite/index.html and /invite/app.js.
  */
 window.PARTY_CONFIG = {
-  // Deployed Google Apps Script Web App URL (Clasp deployment @1)
+  // Deployed Google Apps Script Web App URL (Clasp deployment)
   GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxVejPfTKv7Pm85dtmMoadlyYFDBdWlIpN88QssbYUPph_SoJ-TtZKciuTyQ9yS908blQ/exec',
 
   // When GAS_WEB_APP_URL starts with "REPLACE_", app.js automatically uses localStorage mock mode
@@ -18,7 +18,7 @@ window.PARTY_CONFIG = {
     address: '8700 Green Apple Court, Wake Forest, NC',
     mapsUrl: 'https://maps.google.com/?q=8700+Green+Apple+Court,+Wake+Forest,+NC',
     whiteElephantAnnouncement:
-      "We'll be doing our White Elephant gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.",
+      "We'll be doing our White Elephant (aka Dirty Santa) gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.",
     whiteElephantRulesUrl: 'https://www.whiteelephantrules.com/',
     whiteElephantVideoUrl: 'https://youtube.com/shorts/f4T9XBq3QkI',
     whiteElephantLimit: '$40',
@@ -34,6 +34,12 @@ window.PARTY_CONFIG = {
     'Nothing — just bringing ourselves! (Plenty of food provided)'
   ],
 
+  // Short display labels used in the public "Drinks, Dishes, or Treats" table
+  CATEGORY_DISPLAY_MAP: {
+    'Favorite Wine, Punch, or Beer (We will have Bogle Merlot & Chardonnay!)':
+      'Favorite Wine, Punch, or Beer'
+  },
+
   WHITE_ELEPHANT_OPTIONS: [
     'Yes - Holiday fun is my middle name! 🎉',
     "No - I'll miss out on the fun 😭"
@@ -48,13 +54,13 @@ window.PARTY_CONFIG = {
     {
       question: 'Can I bring my children?',
       answer:
-        'Your children are welcome! All we ask is that you keep a watchful eye on them if they are mobile. Like last year, Jonnin is hoping to have a game for the kids to play, and we have ample Wi-Fi for those who want to stay occupied on their devices.'
+        'Your children are welcome! All we ask is that you keep a watchful eye on them if they are mobile. Like last year, Jonnin is hoping to have a game for the kids to play (let us know on the RSVP how many kids under 10 are coming!), and we have ample Wi-Fi for those who want to stay occupied on their devices.'
     },
     {
-      question: "What's a White Elephant? (Gift Exchange Details)",
+      question: "What's a White Elephant (aka Dirty Santa)?",
       answer:
-        "We are doing the White Elephant gift exchange again this year just like last year! White Elephant is a gift-swapping game where each participating person brings a wrapped gift (couples can share, though it's best to have one each), and players take turns either choosing a new wrapped gift or stealing one that has already been opened (max 2 steals per gift for us). Please keep the average gift value to no more than $40. Gag gifts and unopened regifts are welcome!",
-      linkText: 'Read Official White Elephant Rules & How to Play',
+        "We are doing the White Elephant (aka Dirty Santa) gift exchange again this year just like last year! It's a gift-swapping game where each participating person brings a wrapped gift (couples can share, though it's best to have one each), and players take turns either choosing a new wrapped gift or stealing one that has already been opened (max 2 steals per gift for us). Please keep the average gift value to no more than $40. Gag gifts and unopened regifts are welcome!",
+      linkText: 'Read Official White Elephant (Dirty Santa) Rules',
       linkUrl: 'https://www.whiteelephantrules.com/',
       secondaryLinkText: 'Watch quick overview video',
       secondaryLinkUrl: 'https://youtube.com/shorts/f4T9XBq3QkI'

@@ -53,8 +53,51 @@ function buildInviteUrl(editToken) {
 }
 
 /**
+ * Normalizes category labels for the public contributions table.
+ */
+function formatCategoryForDisplay(cat) {
+  const trimmed = String(cat || '').trim();
+  if (trimmed.indexOf('Favorite Wine, Punch, or Beer') === 0) {
+    return 'Favorite Wine, Punch, or Beer';
+  }
+  return trimmed;
+}
+
+/**
+ * Splits stored categories string (pipe-delimited or legacy comma-delimited) safely.
+ */
+function splitCategories(raw) {
+  const str = String(raw || '').trim();
+  if (!str) return [];
+  if (str.indexOf(' | ') !== -1) {
+    return str.split(' | ').map((s) => s.trim()).filter(Boolean);
+  }
+  const known = [
+    'Favorite Wine, Punch, or Beer (We will have Bogle Merlot & Chardonnay!)',
+    'Favorite Wine, Punch, or Beer',
+    "Appetizer / Hors d'oeuvres",
+    'Dish (Side or Main)',
+    'Dessert / Sweet Treat',
+    'Nothing — just bringing ourselves! (Plenty of food provided)'
+  ];
+  const found = [];
+  let remaining = str;
+  for (let i = 0; i < known.length; i++) {
+    if (remaining.indexOf(known[i]) !== -1) {
+      found.push(known[i]);
+      remaining = remaining.replace(known[i], '');
+    }
+  }
+  const leftovers = remaining
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return found.concat(leftovers);
+}
+
+/**
  * Run once from the Apps Script editor (or automatically on first request)
- * to ensure both tabs and headers exist and match the 2026 schema (including Edit Token).
+ * to ensure both tabs and headers exist and match the 2026 schema.
  */
 function setupSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -72,14 +115,20 @@ function setupSheet() {
       'How many in your party?',
       'Bringing Category (Drink / Dish / Treat)',
       'Specific Drink, Dish, or Treat Details',
-      'Participating in White Elephant? ($40 max avg)',
+      'Participating in White Elephant (aka Dirty Santa)? ($40 max avg)',
       'Notes / Dietary Needs',
-      'Edit Token'
+      'Edit Token',
+      'Kids Under 10'
     ]);
-    responsesSheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+    responsesSheet.getRange(1, 1, 1, 11).setFontWeight('bold');
     responsesSheet.setFrozenRows(1);
-  } else if (responsesSheet.getLastColumn() < 10) {
-    responsesSheet.getRange(1, 10).setValue('Edit Token').setFontWeight('bold');
+  } else {
+    if (responsesSheet.getLastColumn() < 10) {
+      responsesSheet.getRange(1, 10).setValue('Edit Token').setFontWeight('bold');
+    }
+    if (responsesSheet.getLastColumn() < 11) {
+      responsesSheet.getRange(1, 11).setValue('Kids Under 10').setFontWeight('bold');
+    }
   }
 
   let contributionsSheet = ss.getSheetByName(SHEET_CONTRIBUTIONS);
@@ -107,7 +156,7 @@ function findResponseRow(responsesSheet, editToken, email) {
   const lastRow = responsesSheet.getLastRow();
   if (lastRow <= 1) return -1;
 
-  const numCols = Math.max(responsesSheet.getLastColumn(), 10);
+  const numCols = Math.max(responsesSheet.getLastColumn(), 11);
   const rows = responsesSheet.getRange(2, 1, lastRow - 1, numCols).getValues();
   const normToken = String(editToken || '').trim();
   const normEmail = String(email || '').trim().toLowerCase();
@@ -201,20 +250,18 @@ function doGet(e) {
       const responsesSheet = ss.getSheetByName(SHEET_RESPONSES);
       const rowIndex = findResponseRow(responsesSheet, editToken, '');
       if (rowIndex > 1) {
-        const row = responsesSheet.getRange(rowIndex, 1, 1, 10).getValues()[0];
-        const rawCategories = String(row[5] || '').trim();
+        const row = responsesSheet.getRange(rowIndex, 1, 1, 11).getValues()[0];
         rsvp = {
           editToken: String(row[9] || editToken).trim(),
           email: String(row[1] || '').trim(),
           name: String(row[2] || '').trim(),
           attending: String(row[3] || '').trim(),
           partySize: row[4] ? String(row[4]).trim() : '',
-          bringingCategories: rawCategories
-            ? rawCategories.split(',').map((s) => s.trim()).filter(Boolean)
-            : [],
+          bringingCategories: splitCategories(row[5]),
           bringingDetails: String(row[6] || '').trim(),
           whiteElephant: String(row[7] || '').trim(),
-          notes: String(row[8] || '').trim()
+          notes: String(row[8] || '').trim(),
+          kidsUnder10: row[10] !== '' && row[10] !== null && row[10] !== undefined ? String(row[10]).trim() : '0'
         };
       }
     }
@@ -261,9 +308,15 @@ function doPost(e) {
     const email = String(data.email || '').trim();
     const attending = String(data.attending || '').trim();
     const partySize = attending === 'Yes' ? Number(data.partySize || 1) : 0;
-    const bringingCategories = Array.isArray(data.bringingCategories)
-      ? data.bringingCategories.join(', ')
-      : String(data.bringingCategories || '').trim();
+    const kidsUnder10 = attending === 'Yes' ? Number(data.kidsUnder10 || 0) : 0;
+
+    const categoryList = Array.isArray(data.bringingCategories)
+      ? data.bringingCategories.map((c) => String(c || '').trim()).filter(Boolean)
+      : splitCategories(data.bringingCategories);
+    const bringingCategoriesStored = categoryList.join(' | ');
+    const cleanedCategoriesList = categoryList.map(formatCategoryForDisplay);
+    const cleanedCategoriesDisplay = cleanedCategoriesList.join(' | ');
+
     const bringingDetails = String(data.bringingDetails || '').trim();
     const whiteElephant = attending === 'Yes' ? String(data.whiteElephant || '').trim() : '';
     const notes = String(data.notes || '').trim();
@@ -283,52 +336,44 @@ function doPost(e) {
     let isUpdate = false;
     let previousName = name;
 
+    const rowValues = [
+      timestamp,
+      email,
+      name,
+      attending,
+      partySize || '',
+      attending === 'Yes' ? bringingCategoriesStored : '',
+      attending === 'Yes' ? bringingDetails : '',
+      whiteElephant,
+      attending === 'Yes' ? notes : '',
+      '',
+      attending === 'Yes' ? kidsUnder10 : ''
+    ];
+
     if (existingRowIndex > 1) {
       isUpdate = true;
-      const existingRow = responsesSheet.getRange(existingRowIndex, 1, 1, 10).getValues()[0];
+      const existingRow = responsesSheet.getRange(existingRowIndex, 1, 1, 11).getValues()[0];
       previousName = String(existingRow[2] || name).trim();
       editToken = String(existingRow[9] || editToken || Utilities.getUuid()).trim();
+      rowValues[9] = editToken;
 
-      responsesSheet.getRange(existingRowIndex, 1, 1, 10).setValues([
-        [
-          timestamp,
-          email,
-          name,
-          attending,
-          partySize || '',
-          attending === 'Yes' ? bringingCategories : '',
-          attending === 'Yes' ? bringingDetails : '',
-          whiteElephant,
-          attending === 'Yes' ? notes : '',
-          editToken
-        ]
-      ]);
+      responsesSheet.getRange(existingRowIndex, 1, 1, 11).setValues([rowValues]);
     } else {
       editToken = Utilities.getUuid();
-      responsesSheet.appendRow([
-        timestamp,
-        email,
-        name,
-        attending,
-        partySize || '',
-        attending === 'Yes' ? bringingCategories : '',
-        attending === 'Yes' ? bringingDetails : '',
-        whiteElephant,
-        attending === 'Yes' ? notes : '',
-        editToken
-      ]);
+      rowValues[9] = editToken;
+      responsesSheet.appendRow(rowValues);
     }
 
     const isBringingSomething =
       attending === 'Yes' &&
-      ((bringingCategories && !bringingCategories.startsWith('Nothing')) || bringingDetails);
+      ((bringingCategoriesStored && !bringingCategoriesStored.startsWith('Nothing')) || bringingDetails);
 
     const contribRowIndex = findContributionRow(contributionsSheet, editToken, previousName);
     if (isBringingSomething) {
       const contribValues = [
         name,
-        bringingCategories || 'Drink, Dish, or Treat',
-        bringingDetails || bringingCategories,
+        cleanedCategoriesDisplay || 'Drink, Dish, or Treat',
+        bringingDetails || cleanedCategoriesList.join(', '),
         editToken
       ];
       if (contribRowIndex > 1) {
@@ -348,7 +393,8 @@ function doPost(e) {
           email: email,
           attending: attending,
           partySize: partySize,
-          bringingCategories: bringingCategories,
+          kidsUnder10: kidsUnder10,
+          bringingCategories: cleanedCategoriesList.join(', '),
           bringingDetails: bringingDetails,
           whiteElephant: whiteElephant,
           editToken: editToken,
@@ -408,6 +454,11 @@ function sendConfirmationEmail(rsvp) {
         : "🎄 You're RSVP'd: 2026 Christmas with the Sosa's (Sat, Dec 5 @ 5pm)"
       : "🎄 RSVP Received — 2026 Christmas with the Sosa's";
 
+  const kidsLine =
+    rsvp.kidsUnder10 > 0
+      ? `<li><strong>Kids Under 10:</strong> ${escapeHtml(String(rsvp.kidsUnder10))}</li>`
+      : '';
+
   const htmlBody =
     rsvp.attending === 'Yes'
       ? `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px;">
@@ -417,7 +468,8 @@ function sendConfirmationEmail(rsvp) {
             <li><strong>When:</strong> ${escapeHtml(EVENT_CONFIG.dateText)}</li>
             <li><strong>Where:</strong> ${escapeHtml(EVENT_CONFIG.location)}</li>
             <li><strong>Party Size:</strong> ${escapeHtml(String(rsvp.partySize))}</li>
-            <li><strong>White Elephant ($40 max avg value):</strong> ${escapeHtml(rsvp.whiteElephant || 'Not specified')}</li>
+            ${kidsLine}
+            <li><strong>White Elephant (aka Dirty Santa) ($40 max avg value):</strong> ${escapeHtml(rsvp.whiteElephant || 'Not specified')}</li>
             <li><strong>Bringing (Optional):</strong> ${escapeHtml(
               [rsvp.bringingCategories, rsvp.bringingDetails].filter(Boolean).join(' — ') ||
                 'Nothing needed — we have plenty of food, Bogle Merlot, and Chardonnay!'

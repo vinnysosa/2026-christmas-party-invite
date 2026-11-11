@@ -39,9 +39,9 @@
       </div>
 
       <div class="callout-banner white-elephant-banner" id="white-elephant-banner">
-        <p class="callout-title">🎁 White Elephant Gift Exchange Returns!</p>
+        <p class="callout-title">🎁 White Elephant (aka Dirty Santa) Gift Exchange Returns!</p>
         <p id="white-elephant-announcement">
-          We'll be doing our White Elephant gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.
+          We'll be doing our White Elephant (aka Dirty Santa) gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.
         </p>
         <p class="callout-links">
           <a
@@ -50,7 +50,7 @@
             target="_blank"
             rel="noopener"
           >
-            New to White Elephant? Read how it works →
+            New to White Elephant (Dirty Santa)? Read how it works →
           </a>
         </p>
       </div>
@@ -65,6 +65,17 @@
       <div id="mock-mode-banner" class="dev-banner" hidden role="status">
         <strong>Local Preview Mode:</strong> Connect <code>GAS_WEB_APP_URL</code> in <code>config.js</code> for live Google Sheet sync.
       </div>
+
+      <!-- Collapsible FAQ Card directly above the RSVP form -->
+      <section id="faq-section" class="card faq-card" aria-label="Frequently Asked Questions">
+        <details class="faq-outer-drawer" id="faq-outer-drawer">
+          <summary class="faq-outer-summary">
+            <span class="faq-outer-label">❓ Frequently Asked Questions</span>
+            <span class="faq-outer-hint">Food &amp; Drinks, Kids, White Elephant (Dirty Santa)</span>
+          </summary>
+          <div id="faq-list" class="faq-list faq-outer-body"></div>
+        </details>
+      </section>
 
       <!-- RSVP Card -->
       <section id="rsvp-section" class="card" aria-labelledby="rsvp-heading">
@@ -170,25 +181,40 @@
           <fieldset id="rsvp-details-section" class="rsvp-details" hidden disabled>
             <legend class="details-legend">RSVP Details</legend>
 
-            <div class="field">
-              <label for="rsvp-party-size">How many in your party? <span class="req-mark" aria-hidden="true">*</span></label>
-              <select id="rsvp-party-size" name="partySize" required data-error="party-size-error">
-                <option value="" disabled selected>Select number of guests...</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6+</option>
-              </select>
-              <div id="party-size-error" class="error-msg">
-                <span role="img" aria-label="Error">❌</span> Please select how many people are in your party.
+            <div class="field-row-2">
+              <div class="field">
+                <label for="rsvp-party-size">How many in your party? <span class="req-mark" aria-hidden="true">*</span></label>
+                <select id="rsvp-party-size" name="partySize" required data-error="party-size-error">
+                  <option value="" disabled selected>Select total guests...</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6+</option>
+                </select>
+                <div id="party-size-error" class="error-msg">
+                  <span role="img" aria-label="Error">❌</span> Please select how many people are in your party.
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="rsvp-kids-under-10">Kids under age 10? <span class="optional-tag">(Optional)</span></label>
+                <select id="rsvp-kids-under-10" name="kidsUnder10" aria-describedby="kids-hint">
+                  <option value="0" selected>0 (None)</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5+</option>
+                </select>
+                <span id="kids-hint" class="hint">Helps Jonnin plan games for the kids!</span>
               </div>
             </div>
 
             <fieldset class="field fieldset-plain">
               <legend>
-                Participating in the White Elephant Gift Exchange?
+                Participating in White Elephant (aka Dirty Santa)?
                 <span class="legend-subtext">
                   We're doing it again this year! Average gift value of no more than $40.
                   <a href="https://www.whiteelephantrules.com/" target="_blank" rel="noopener">How it works</a>
@@ -286,7 +312,7 @@
         </div>
       </section>
 
-      <!-- Live Drinks, Dishes, or Treats Card (directly below RSVP for quick visibility) -->
+      <!-- Live Drinks, Dishes, or Treats Card -->
       <section id="contributions-section" class="card" aria-labelledby="contributions-heading">
         <div class="card-header contributions-header">
           <div>
@@ -322,14 +348,6 @@
             <tbody id="contributions-list"></tbody>
           </table>
         </div>
-      </section>
-
-      <!-- FAQ Card -->
-      <section id="faq-section" class="card" aria-labelledby="faq-heading">
-        <div class="card-header">
-          <h2 id="faq-heading">Frequently Asked Questions</h2>
-        </div>
-        <div id="faq-list" class="faq-list"></div>
       </section>
     </main>
 

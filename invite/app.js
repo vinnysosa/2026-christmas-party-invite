@@ -150,6 +150,7 @@
   const attendingYes = document.getElementById('attending-yes');
   const attendingNo = document.getElementById('attending-no');
   const partySizeSelect = document.getElementById('rsvp-party-size');
+  const kidsUnder10Select = document.getElementById('rsvp-kids-under-10');
   const whiteElephantContainer = document.getElementById('white-elephant-options');
   const bringingContainer = document.getElementById('bringing-options');
   const bringingDetailsInput = document.getElementById('rsvp-bringing-details');
@@ -267,15 +268,12 @@
   }
 
   function renderFaqs() {
-    const isDesktop = window.innerWidth >= 640;
     faqList.innerHTML = '';
 
-    CONFIG.FAQS.forEach((faq, idx) => {
+    CONFIG.FAQS.forEach((faq) => {
       const details = document.createElement('details');
       details.className = 'faq-item';
-      if (isDesktop || idx === 0) {
-        details.open = true;
-      }
+      details.open = true;
 
       const summary = document.createElement('summary');
       summary.textContent = faq.question;
@@ -347,6 +345,10 @@
 
     if (rsvp.partySize) {
       partySizeSelect.value = String(rsvp.partySize);
+    }
+
+    if (kidsUnder10Select) {
+      kidsUnder10Select.value = rsvp.kidsUnder10 ? String(rsvp.kidsUnder10) : '0';
     }
 
     const weRadios = whiteElephantContainer.querySelectorAll('input[type="radio"]');
@@ -514,6 +516,58 @@
     );
   }
 
+  // Category display & multi-selection parser
+  function cleanCategoryLabel(raw) {
+    const trimmed = String(raw || '').trim();
+    const map = CONFIG.CATEGORY_DISPLAY_MAP || {};
+    if (map[trimmed]) return map[trimmed];
+    if (trimmed.startsWith('Favorite Wine, Punch, or Beer')) {
+      return 'Favorite Wine, Punch, or Beer';
+    }
+    return trimmed;
+  }
+
+  function parseCategoryPills(rawCategory) {
+    const str = String(rawCategory || '').trim();
+    if (!str) return ['Drink, Dish, or Treat'];
+
+    if (str.includes(' | ')) {
+      return str.split(' | ').map(cleanCategoryLabel).filter(Boolean);
+    }
+
+    const known = [
+      ...(CONFIG.BRINGING_OPTIONS || []),
+      'Favorite Wine, Punch, or Beer'
+    ];
+    const found = [];
+    let remaining = str;
+
+    for (const opt of known) {
+      if (remaining.includes(opt)) {
+        found.push(cleanCategoryLabel(opt));
+        remaining = remaining.replace(opt, '');
+      }
+    }
+
+    const leftovers = remaining
+      .split(',')
+      .map((s) => cleanCategoryLabel(s))
+      .filter(Boolean);
+
+    const result = [...found, ...leftovers];
+    return result.length ? result : ['Drink, Dish, or Treat'];
+  }
+
+  function formatDescriptionText(rawDesc) {
+    let text = String(rawDesc || '').trim();
+    if (!text) return '—';
+    const map = CONFIG.CATEGORY_DISPLAY_MAP || {};
+    for (const [full, short] of Object.entries(map)) {
+      text = text.replaceAll(full, short);
+    }
+    return text;
+  }
+
   // Local Mock Storage Helpers (supports create + update + cancel)
   function readMockRsvps() {
     try {
@@ -551,14 +605,15 @@
     const saved = readMockRsvps();
     for (const item of saved) {
       if (item.attending !== 'Yes') continue;
-      const cats = (item.bringingCategories || []).join(', ');
+      const catsList = (item.bringingCategories || []).map(cleanCategoryLabel);
+      const catsJoined = catsList.join(' | ');
       const details = (item.bringingDetails || '').trim();
-      const isBringing = (cats && !cats.startsWith('Nothing')) || details;
+      const isBringing = (catsJoined && !catsJoined.startsWith('Nothing')) || details;
       if (isBringing) {
         base.push({
           guestName: item.name,
-          category: cats || 'Drink, Dish, or Treat',
-          itemDescription: details || cats
+          category: catsJoined || 'Drink, Dish, or Treat',
+          itemDescription: details || catsList.join(', ')
         });
       }
     }
@@ -573,7 +628,7 @@
       '&text=' + encodeURIComponent(ev.title) +
       '&dates=' + encodeURIComponent(`${ev.startIsoUtc}/${ev.endIsoUtc}`) +
       '&location=' + encodeURIComponent(ev.address) +
-      '&details=' + encodeURIComponent(`White Elephant ($40 max avg) & Event Details: ${window.location.href}`)
+      '&details=' + encodeURIComponent(`White Elephant (aka Dirty Santa, $40 max avg) & Event Details: ${window.location.href}`)
     );
   }
 
@@ -593,7 +648,7 @@
       `DTEND:${ev.endIsoUtc}`,
       `SUMMARY:${ev.title}`,
       `LOCATION:${escapedAddress}`,
-      `DESCRIPTION:We can't wait to celebrate with you! White Elephant gift exchange ($40 max avg). Details: ${window.location.href}`,
+      `DESCRIPTION:We can't wait to celebrate with you! White Elephant (aka Dirty Santa) gift exchange ($40 max avg). Details: ${window.location.href}`,
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\r\n');
@@ -646,7 +701,9 @@
       const strong = document.createElement('strong');
       strong.textContent = `${item.guestName || 'Guest'}: `;
       const span = document.createElement('span');
-      span.textContent = item.itemDescription || item.category || 'Bringing an item';
+      span.textContent = formatDescriptionText(
+        item.itemDescription || parseCategoryPills(item.category).join(', ')
+      );
       li.append(strong, span);
       inlineContributionsList.appendChild(li);
     }
@@ -679,13 +736,19 @@
       th.textContent = item.guestName || 'Guest';
 
       const tdCat = document.createElement('td');
-      const badge = document.createElement('span');
-      badge.className = 'category-badge';
-      badge.textContent = item.category || 'Drink, Dish, or Treat';
-      tdCat.appendChild(badge);
+      const pillStack = document.createElement('div');
+      pillStack.className = 'category-pill-stack';
+      const pills = parseCategoryPills(item.category);
+      for (const pillText of pills) {
+        const badge = document.createElement('span');
+        badge.className = 'category-badge';
+        badge.textContent = pillText;
+        pillStack.appendChild(badge);
+      }
+      tdCat.appendChild(pillStack);
 
       const tdDesc = document.createElement('td');
-      tdDesc.textContent = item.itemDescription || item.category || '—';
+      tdDesc.textContent = formatDescriptionText(item.itemDescription || pills.join(', '));
 
       tr.append(th, tdCat, tdDesc);
       contributionsList.appendChild(tr);
@@ -779,6 +842,7 @@
       email: String(formData.get('email') || '').trim(),
       attending: attending,
       partySize: attending === 'Yes' ? String(formData.get('partySize') || '1') : '0',
+      kidsUnder10: attending === 'Yes' ? String(formData.get('kidsUnder10') || '0') : '0',
       whiteElephant: attending === 'Yes' ? String(formData.get('whiteElephant') || '') : '',
       bringingCategories: attending === 'Yes' ? formData.getAll('bringingCategories') : [],
       bringingDetails: attending === 'Yes' ? String(formData.get('bringingDetails') || '').trim() : '',
