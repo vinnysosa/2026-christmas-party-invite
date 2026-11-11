@@ -1,4 +1,6 @@
 :root {
+  --in-oklab: ;
+  --in-oklch: ;
   --winter-navy-deep: #071326;
   --winter-navy-mid: #0c2344;
   --winter-sapphire: #173d70;
@@ -9,16 +11,26 @@
   --evergreen-hover: #11522a;
   --gold: #d4af37;
   --gold-soft: #f6ebc1;
-  --cream: rgba(253, 251, 247, 0.95);
-  --surface-muted: #f2f5fa;
-  --text: #1e293b;
-  --text-muted: #475569;
-  --border: #d4dce8;
+  --cream: rgba(244, 249, 255, 0.64);
+  --surface-muted: rgba(235, 244, 255, 0.62);
+  --text: #0f172a;
+  --text-muted: #334155;
+  --border: rgba(203, 213, 225, 0.72);
   --error: #b91c1c;
-  --error-bg: #fef2f2;
+  --error-bg: rgba(254, 242, 242, 0.9);
   --radius-lg: 18px;
   --radius-md: 12px;
-  --shadow: 0 18px 45px rgba(4, 11, 26, 0.45);
+  --shadow:
+    0 20px 45px rgba(3, 10, 24, 0.38),
+    0 4px 12px rgba(3, 10, 24, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.82);
+}
+
+@supports (background: linear-gradient(in oklab, white, black)) {
+  :root {
+    --in-oklab: in oklab;
+    --in-oklch: in oklch;
+  }
 }
 
 *,
@@ -42,22 +54,22 @@ body {
   line-height: 1.6;
   color: var(--text);
   background-color: var(--winter-navy-deep);
-  background-image:
-    radial-gradient(circle at 18% 14%, rgba(125, 211, 252, 0.24) 0%, transparent 34%),
-    radial-gradient(circle at 84% 20%, rgba(212, 175, 55, 0.18) 0%, transparent 38%),
-    radial-gradient(circle at 50% 88%, rgba(37, 99, 235, 0.34) 0%, transparent 52%),
-    linear-gradient(155deg, #061121 0%, #0d2547 45%, #163d6e 82%, #1a477d 100%);
-  background-attachment: fixed;
   overflow-x: hidden;
 }
 
 #snow-canvas {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100lvh;
   pointer-events: none;
   z-index: 0;
+  background-color: var(--winter-navy-deep);
+  background-image:
+    radial-gradient(circle at 18% 14%, rgba(125, 211, 252, 0.34) 0%, transparent 38%),
+    radial-gradient(circle at 84% 22%, rgba(212, 175, 55, 0.24) 0%, transparent 42%),
+    radial-gradient(circle at 50% 85%, rgba(56, 189, 248, 0.28) 0%, transparent 52%),
+    linear-gradient(155deg var(--in-oklab), #061121 0%, #0d2547 45%, #163d6e 80%, #1d4f8c 100%);
 }
 
 .page-shell,
@@ -107,12 +119,17 @@ body {
 }
 
 .card {
-  background: var(--cream);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(191, 219, 254, 0.55);
+  background: linear-gradient(
+    145deg var(--in-oklab),
+    rgba(255, 255, 255, 0.68) 0%,
+    rgba(235, 245, 255, 0.56) 55%,
+    rgba(224, 240, 255, 0.64) 100%
+  );
+  backdrop-filter: blur(11px) saturate(160%);
+  -webkit-backdrop-filter: blur(11px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.68);
   border-radius: var(--radius-lg);
-  padding: clamp(1.25rem, 4vw, 2rem);
+  padding: clamp(1.2rem, 4vw, 2rem);
   box-shadow: var(--shadow);
 }
 
@@ -187,13 +204,15 @@ body {
 }
 
 .white-elephant-banner {
-  background: linear-gradient(135deg, #fffaf0 0%, #fef3c7 100%);
+  background: linear-gradient(135deg var(--in-oklab), rgba(255, 251, 235, 0.78) 0%, rgba(254, 243, 199, 0.68) 100%);
   border-color: rgba(212, 175, 55, 0.75);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .hosts-note-banner {
-  background: linear-gradient(135deg, #f0f6ff 0%, #e4eefc 100%);
-  border-color: rgba(23, 61, 112, 0.25);
+  background: linear-gradient(135deg var(--in-oklab), rgba(240, 247, 255, 0.76) 0%, rgba(224, 238, 254, 0.66) 100%);
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .callout-title {
@@ -260,9 +279,9 @@ body {
 
 /* Inline Guest Contributions Drawer inside RSVP Details */
 .inline-contributions-drawer {
-  border: 1.5px solid #bfdbfe;
+  border: 1.5px solid rgba(191, 219, 254, 0.85);
   border-radius: var(--radius-md);
-  background: #f8fbff;
+  background: rgba(248, 251, 255, 0.68);
   margin-block: 0.25rem 1.35rem;
   overflow: hidden;
 }
@@ -467,10 +486,20 @@ textarea {
   min-height: 48px;
   padding: 0.7rem 0.9rem;
   color: var(--text);
-  background: #ffffff;
-  border: 1.5px solid #94a3b8;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1.5px solid rgba(148, 163, 184, 0.75);
   border-radius: var(--radius-md);
+  box-shadow:
+    inset 0 1px 2px rgba(15, 23, 42, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.7);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+input[type='text']:focus,
+input[type='email']:focus,
+select:focus,
+textarea:focus {
+  background: rgba(255, 255, 255, 0.92);
 }
 
 textarea {
@@ -542,16 +571,19 @@ summary:focus-visible,
   gap: 0.75rem;
   min-height: 48px;
   padding: 0.75rem 0.95rem;
-  background: #ffffff;
-  border: 1.5px solid var(--border);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
   border-radius: var(--radius-md);
+  box-shadow:
+    0 4px 12px rgba(7, 19, 38, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .option-card:hover {
   border-color: var(--crimson);
-  background: #fffdfb;
+  background: rgba(255, 255, 255, 0.84);
 }
 
 .option-card input[type='radio'],
@@ -566,8 +598,8 @@ summary:focus-visible,
 
 .option-card:has(input:checked) {
   border-color: var(--crimson);
-  background: #fdf2f2;
-  box-shadow: 0 0 0 1px var(--crimson);
+  background: rgba(254, 242, 242, 0.86);
+  box-shadow: 0 0 0 1px var(--crimson), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .option-text {
@@ -587,11 +619,12 @@ summary:focus-visible,
 
 /* Conditional Step 2 */
 .rsvp-details {
-  border: 1.5px solid rgba(23, 61, 112, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
   border-radius: var(--radius-md);
   padding: 1.1rem clamp(0.85rem, 3vw, 1.25rem) 0.25rem;
   margin: 0 0 1.35rem;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .details-legend {
@@ -748,9 +781,9 @@ summary:focus-visible,
 }
 
 .faq-item {
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.68);
   overflow: hidden;
 }
 
@@ -862,9 +895,9 @@ summary:focus-visible,
   max-inline-size: 100%;
   max-block-size: min(440px, 70dvh);
   container-type: inline-size;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.68);
 }
 
 .contributions-table {
@@ -951,9 +984,9 @@ summary:focus-visible,
 
   .contributions-table tr {
     margin-block-end: 0.75rem;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.75);
     border-radius: var(--radius-md);
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.74);
     overflow: hidden;
   }
 

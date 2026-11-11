@@ -66,46 +66,64 @@
     if (!ctx) return;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const speedScale = prefersReducedMotion ? 0.55 : 1;
     let width = 0;
     let height = 0;
     let dpr = 1;
     let animationFrameId = 0;
 
-    function resize() {
+    function resize(force = false) {
+      const nextWidth = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0, 320);
+      const nextHeight = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 480);
+
+      // Avoid resetting canvas bitmap on mobile URL bar expand/collapse during scroll
+      if (
+        !force &&
+        width > 0 &&
+        Math.abs(nextWidth - width) < 4 &&
+        Math.abs(nextHeight - height) < 140
+      ) {
+        return;
+      }
+
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
+      width = nextWidth;
+      height = nextHeight;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
+    resize(true);
+    window.addEventListener('resize', () => resize(false), { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(() => resize(true), 150), {
+      passive: true
+    });
 
-    const dotCount = width < 640 ? 40 : 55;
-    const flakeCount = width < 640 ? 11 : 15;
+    const isMobile = width < 640;
+    const dotCount = isMobile ? 55 : 75;
+    const flakeCount = isMobile ? 16 : 22;
 
     const dots = Array.from({ length: dotCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      r: 1.4 + Math.random() * 2.8,
-      vy: 0.45 + Math.random() * 0.9,
-      swayAmp: 0.35 + Math.random() * 0.7,
+      r: 1.8 + Math.random() * 3.4,
+      vy: (0.65 + Math.random() * 1.15) * speedScale,
+      swayAmp: (0.45 + Math.random() * 0.85) * speedScale,
       swayPhase: Math.random() * Math.PI * 2,
-      swaySpeed: 0.008 + Math.random() * 0.015,
-      alpha: 0.32 + Math.random() * 0.52
+      swaySpeed: (0.012 + Math.random() * 0.018) * speedScale,
+      alpha: 0.48 + Math.random() * 0.48
     }));
 
     const flakes = Array.from({ length: flakeCount }, (_, idx) => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      size: 16 + Math.random() * 18,
-      vy: 0.32 + Math.random() * 0.55,
-      vx: (Math.random() - 0.5) * 0.35,
+      size: 18 + Math.random() * 20,
+      vy: (0.48 + Math.random() * 0.72) * speedScale,
+      vx: (Math.random() - 0.5) * 0.45 * speedScale,
       angle: Math.random() * Math.PI * 2,
-      spin: (Math.random() - 0.5) * 0.012,
-      alpha: 0.18 + Math.random() * 0.26,
+      spin: (Math.random() - 0.5) * 0.016 * speedScale,
+      alpha: 0.34 + Math.random() * 0.36,
       glyph: SNOWFLAKE_GLYPHS[idx % SNOWFLAKE_GLYPHS.length],
       isIcyBlue: idx % 3 === 0
     }));
@@ -114,18 +132,16 @@
       ctx.clearRect(0, 0, width, height);
 
       for (const dot of dots) {
-        if (!prefersReducedMotion) {
-          dot.swayPhase += dot.swaySpeed;
-          dot.y += dot.vy;
-          dot.x += Math.sin(dot.swayPhase) * dot.swayAmp;
+        dot.swayPhase += dot.swaySpeed;
+        dot.y += dot.vy;
+        dot.x += Math.sin(dot.swayPhase) * dot.swayAmp;
 
-          if (dot.y > height + 10) {
-            dot.y = -10;
-            dot.x = Math.random() * width;
-          }
-          if (dot.x > width + 10) dot.x = -10;
-          if (dot.x < -10) dot.x = width + 10;
+        if (dot.y > height + 12) {
+          dot.y = -12;
+          dot.x = Math.random() * width;
         }
+        if (dot.x > width + 12) dot.x = -12;
+        if (dot.x < -12) dot.x = width + 12;
 
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
@@ -137,18 +153,16 @@
       ctx.textBaseline = 'middle';
 
       for (const flake of flakes) {
-        if (!prefersReducedMotion) {
-          flake.y += flake.vy;
-          flake.x += flake.vx + Math.sin(flake.y * 0.01) * 0.25;
-          flake.angle += flake.spin;
+        flake.y += flake.vy;
+        flake.x += flake.vx + Math.sin(flake.y * 0.012) * 0.3;
+        flake.angle += flake.spin;
 
-          if (flake.y > height + 40) {
-            flake.y = -40;
-            flake.x = Math.random() * width;
-          }
-          if (flake.x > width + 40) flake.x = -40;
-          if (flake.x < -40) flake.x = width + 40;
+        if (flake.y > height + 40) {
+          flake.y = -40;
+          flake.x = Math.random() * width;
         }
+        if (flake.x > width + 40) flake.x = -40;
+        if (flake.x < -40) flake.x = width + 40;
 
         ctx.save();
         ctx.translate(flake.x, flake.y);
@@ -161,18 +175,16 @@
         ctx.restore();
       }
 
-      if (!prefersReducedMotion) {
-        animationFrameId = window.requestAnimationFrame(drawFrame);
-      }
+      animationFrameId = window.requestAnimationFrame(drawFrame);
     }
 
     drawFrame();
 
     document.addEventListener('visibilitychange', () => {
-      if (prefersReducedMotion) return;
       if (document.hidden) {
         window.cancelAnimationFrame(animationFrameId);
       } else {
+        window.cancelAnimationFrame(animationFrameId);
         animationFrameId = window.requestAnimationFrame(drawFrame);
       }
     });
