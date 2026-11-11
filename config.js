@@ -18,7 +18,7 @@ window.PARTY_CONFIG = {
     address: '8700 Green Apple Court, Wake Forest, NC',
     mapsUrl: 'https://maps.google.com/?q=8700+Green+Apple+Court,+Wake+Forest,+NC',
     whiteElephantAnnouncement:
-      "We'll be doing our White Elephant gift exchange again this year just like last year! Please let us know in your RSVP if you'll be participating. The average gift value should be no more than $40.",
+      "We'll be doing our White Elephant gift exchange again this year! It is one wrapped gift per participating adult (average gift value of no more than $40). Gifts should be fun or funny, but please keep them family-friendly!",
     whiteElephantRulesUrl: 'https://www.whiteelephantrules.com/',
     whiteElephantVideoUrl: 'https://youtube.com/shorts/f4T9XBq3QkI',
     whiteElephantLimit: '$40',
@@ -58,7 +58,7 @@ window.PARTY_CONFIG = {
     {
       question: "What's a White Elephant?",
       answer:
-        "We are doing the White Elephant gift exchange again this year just like last year! It's a gift-swapping game where each participating person brings a wrapped gift (couples can share, though it's best to have one each), and players take turns either choosing a new wrapped gift or stealing one that has already been opened (max 2 steals per gift for us). Please keep the average gift value to no more than $40. Gag gifts and unopened regifts are welcome!",
+        "We are doing the White Elephant gift exchange again this year! It's a gift-swapping game where each participating adult brings one wrapped gift, and players take turns either choosing a new wrapped gift or stealing one that has already been opened (max 2 steals per gift for us). Please keep the average gift value to no more than $40. Gifts should be fun or funny (gag gifts and unopened regifts are welcome!), but please keep them family-friendly.",
       linkText: 'Read Official White Elephant Rules',
       linkUrl: 'https://www.whiteelephantrules.com/',
       secondaryLinkText: 'Watch quick overview video',
