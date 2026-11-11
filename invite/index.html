@@ -18,7 +18,7 @@
   <div class="page-shell">
     <header class="hero card hero-card">
       <div class="hero-top-meta">
-        <span class="eyebrow" id="event-date-badge">Saturday, December 5, 2026 • 6:00 PM</span>
+        <span class="eyebrow" id="event-date-badge">Saturday, December 5, 2026 • 5:00 PM</span>
       </div>
       <h1 id="event-title">2026 Christmas with the Sosa's</h1>
       <p class="hero-subtitle" id="event-subtitle">
@@ -70,7 +70,14 @@
       <section id="rsvp-section" class="card" aria-labelledby="rsvp-heading">
         <div class="card-header">
           <h2 id="rsvp-heading">Kindly RSVP</h2>
-          <p class="card-intro">Please let us know if you can join us by filling out the quick form below.</p>
+          <p class="card-intro" id="rsvp-intro">
+            Please let us know if you can join us below. Already RSVP'd? Use the edit link in your confirmation email—or submit again with the same email address to change your party size, dish, or cancel.
+          </p>
+        </div>
+
+        <div id="editing-mode-banner" class="editing-banner" hidden role="status">
+          <span id="editing-banner-text">✏️ Editing your saved RSVP. Change any details below (or switch Attending to "No" to cancel) and click Save.</span>
+          <button type="button" id="btn-cancel-edit" class="btn btn-ghost btn-sm">Start Fresh</button>
         </div>
 
         <form id="rsvp-form" novalidate aria-labelledby="rsvp-heading">
@@ -99,7 +106,7 @@
 
           <div class="field">
             <label for="rsvp-email">Email Address <span class="req-mark" aria-hidden="true">*</span></label>
-            <span id="email-hint" class="hint">We'll send you a confirmation &amp; calendar invite</span>
+            <span id="email-hint" class="hint">We'll send you a confirmation, calendar invite &amp; personal link to edit/cancel later</span>
             <input
               type="email"
               id="rsvp-email"
@@ -135,7 +142,7 @@
                 >
                 <span class="option-text">
                   <strong>Yes, we'll be there!</strong>
-                  <small>Saturday, Dec 5 @ 6:00 PM</small>
+                  <small>Saturday, Dec 5 @ 5:00 PM</small>
                 </span>
               </label>
 
@@ -150,7 +157,7 @@
                 >
                 <span class="option-text">
                   <strong>No, can't make it</strong>
-                  <small>Send warm wishes instead</small>
+                  <small>Send warm wishes / cancel RSVP</small>
                 </span>
               </label>
             </div>
@@ -197,6 +204,18 @@
               </p>
             </div>
 
+            <!-- Inline preview of what others are bringing right next to the bringing fields -->
+            <details class="inline-contributions-drawer" id="inline-contributions-drawer">
+              <summary>👀 See what drinks, dishes &amp; treats others are bringing</summary>
+              <div class="inline-drawer-body">
+                <div class="inline-drawer-toolbar">
+                  <span class="hint">Refresh the page (or tap Refresh) to see the latest list.</span>
+                  <button type="button" id="btn-inline-refresh" class="btn btn-ghost btn-sm">↻ Refresh</button>
+                </div>
+                <ul id="inline-contributions-list" class="inline-contributions-list"></ul>
+              </div>
+            </details>
+
             <fieldset class="field fieldset-plain">
               <legend>
                 Planning to bring a drink, dish, or treat? <span class="optional-tag">(Optional)</span>
@@ -241,7 +260,7 @@
         <!-- Confirmation Panel -->
         <div id="rsvp-confirmation" class="confirmation-panel" hidden tabindex="-1">
           <div class="confirmation-badge" aria-hidden="true">🎄</div>
-          <h3>RSVP Received!</h3>
+          <h3 id="confirmation-heading">RSVP Received!</h3>
           <p id="confirmation-message">
             Thanks for letting us know! We'll see you there otherwise we wish you the happiest seasons greetings and a Merry Christmas!
           </p>
@@ -256,27 +275,24 @@
             </button>
           </div>
 
-          <button type="button" id="btn-reset-form" class="btn btn-ghost">
-            Submit Another RSVP
-          </button>
+          <div class="confirmation-secondary-actions">
+            <button type="button" id="btn-edit-current" class="btn btn-secondary" hidden>
+              ✏️ Edit or Cancel This RSVP
+            </button>
+            <button type="button" id="btn-reset-form" class="btn btn-ghost">
+              Submit Another RSVP
+            </button>
+          </div>
         </div>
       </section>
 
-      <!-- FAQ Card -->
-      <section id="faq-section" class="card" aria-labelledby="faq-heading">
-        <div class="card-header">
-          <h2 id="faq-heading">Frequently Asked Questions</h2>
-        </div>
-        <div id="faq-list" class="faq-list"></div>
-      </section>
-
-      <!-- Live Drinks, Dishes, or Treats Card -->
+      <!-- Live Drinks, Dishes, or Treats Card (directly below RSVP for quick visibility) -->
       <section id="contributions-section" class="card" aria-labelledby="contributions-heading">
         <div class="card-header contributions-header">
           <div>
             <h2 id="contributions-heading">Drinks, Dishes, or Treats Guests Are Bringing</h2>
             <p class="card-intro">
-              You don't need to bring a thing—we'll have plenty of food, Bogle Merlot, and Chardonnay! If you wish to bring a favorite drink, dish, or treat, here's what others have mentioned so far so we can minimize food waste:
+              You don't need to bring a thing—we'll have plenty of food, Bogle Merlot, and Chardonnay! If you wish to bring a favorite drink, dish, or treat, here's what others have mentioned so far. <strong>Refresh the page (or tap Refresh) anytime to see the latest list.</strong>
             </p>
           </div>
           <button type="button" id="btn-refresh-contributions" class="btn btn-ghost btn-sm">
@@ -306,6 +322,14 @@
             <tbody id="contributions-list"></tbody>
           </table>
         </div>
+      </section>
+
+      <!-- FAQ Card -->
+      <section id="faq-section" class="card" aria-labelledby="faq-heading">
+        <div class="card-header">
+          <h2 id="faq-heading">Frequently Asked Questions</h2>
+        </div>
+        <div id="faq-list" class="faq-list"></div>
       </section>
     </main>
 

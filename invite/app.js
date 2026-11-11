@@ -42,7 +42,7 @@
       swayAmp: 0.35 + Math.random() * 0.7,
       swayPhase: Math.random() * Math.PI * 2,
       swaySpeed: 0.008 + Math.random() * 0.015,
-      alpha: 0.28 + Math.random() * 0.52
+      alpha: 0.32 + Math.random() * 0.52
     }));
 
     const flakes = Array.from({ length: flakeCount }, (_, idx) => ({
@@ -53,9 +53,9 @@
       vx: (Math.random() - 0.5) * 0.35,
       angle: Math.random() * Math.PI * 2,
       spin: (Math.random() - 0.5) * 0.012,
-      alpha: 0.16 + Math.random() * 0.24,
+      alpha: 0.18 + Math.random() * 0.26,
       glyph: SNOWFLAKE_GLYPHS[idx % SNOWFLAKE_GLYPHS.length],
-      isGold: idx % 4 === 0
+      isIcyBlue: idx % 3 === 0
     }));
 
     function drawFrame() {
@@ -102,8 +102,8 @@
         ctx.translate(flake.x, flake.y);
         ctx.rotate(flake.angle);
         ctx.font = `${flake.size}px sans-serif`;
-        ctx.fillStyle = flake.isGold
-          ? `rgba(246, 235, 193, ${flake.alpha})`
+        ctx.fillStyle = flake.isIcyBlue
+          ? `rgba(186, 230, 253, ${flake.alpha})`
           : `rgba(255, 255, 255, ${flake.alpha})`;
         ctx.fillText(flake.glyph, 0, 0);
         ctx.restore();
@@ -136,31 +136,48 @@
   const isMockMode = !CONFIG.GAS_WEB_APP_URL || CONFIG.GAS_WEB_APP_URL.startsWith('REPLACE_');
   const urlParams = new URLSearchParams(window.location.search);
   const inviteKey = urlParams.get('key') || '';
+  const initialEditToken = urlParams.get('edit') || '';
 
   // DOM References
   const mockBanner = document.getElementById('mock-mode-banner');
+  const rsvpHeading = document.getElementById('rsvp-heading');
+  const editingBanner = document.getElementById('editing-mode-banner');
+  const editingBannerText = document.getElementById('editing-banner-text');
+  const btnCancelEdit = document.getElementById('btn-cancel-edit');
   const detailsFieldset = document.getElementById('rsvp-details-section');
+  const nameInput = document.getElementById('rsvp-name');
+  const emailInput = document.getElementById('rsvp-email');
   const attendingYes = document.getElementById('attending-yes');
   const attendingNo = document.getElementById('attending-no');
+  const partySizeSelect = document.getElementById('rsvp-party-size');
   const whiteElephantContainer = document.getElementById('white-elephant-options');
   const bringingContainer = document.getElementById('bringing-options');
+  const bringingDetailsInput = document.getElementById('rsvp-bringing-details');
+  const notesInput = document.getElementById('rsvp-notes');
   const submitBtn = document.getElementById('rsvp-submit-btn');
+  const submitBtnLabel = submitBtn.querySelector('.btn-label');
   const formStatus = document.getElementById('form-status');
   const confirmationPanel = document.getElementById('rsvp-confirmation');
+  const confirmationHeading = document.getElementById('confirmation-heading');
   const confirmationMessage = document.getElementById('confirmation-message');
   const confirmationEmailNote = document.getElementById('confirmation-email-note');
   const calendarActions = document.getElementById('confirmation-calendar-actions');
   const btnGoogleCal = document.getElementById('btn-google-cal');
   const btnIcsCal = document.getElementById('btn-ics-cal');
+  const btnEditCurrent = document.getElementById('btn-edit-current');
   const btnResetForm = document.getElementById('btn-reset-form');
   const faqList = document.getElementById('faq-list');
   const contributionsList = document.getElementById('contributions-list');
+  const inlineContributionsList = document.getElementById('inline-contributions-list');
   const contributionsStatus = document.getElementById('contributions-status');
   const btnRefresh = document.getElementById('btn-refresh-contributions');
+  const btnInlineRefresh = document.getElementById('btn-inline-refresh');
   const filterPills = Array.from(document.querySelectorAll('.filter-pill'));
 
   let allContributions = [];
   let activeFilter = 'all';
+  let activeEditToken = initialEditToken;
+  let lastSubmittedRsvp = null;
 
   // Show local preview banner only on localhost
   if (
@@ -314,6 +331,63 @@
   attendingYes.addEventListener('change', syncAttendingSection);
   attendingNo.addEventListener('change', syncAttendingSection);
 
+  // Pre-fill form when editing an existing RSVP
+  function populateFormForEdit(rsvp) {
+    if (!rsvp) return;
+    activeEditToken = rsvp.editToken || activeEditToken;
+    nameInput.value = rsvp.name || '';
+    emailInput.value = rsvp.email || '';
+
+    if (rsvp.attending === 'Yes') {
+      attendingYes.checked = true;
+    } else if (rsvp.attending === 'No') {
+      attendingNo.checked = true;
+    }
+    syncAttendingSection();
+
+    if (rsvp.partySize) {
+      partySizeSelect.value = String(rsvp.partySize);
+    }
+
+    const weRadios = whiteElephantContainer.querySelectorAll('input[type="radio"]');
+    weRadios.forEach((r) => {
+      r.checked = r.value === rsvp.whiteElephant;
+    });
+
+    const selectedCats = Array.isArray(rsvp.bringingCategories) ? rsvp.bringingCategories : [];
+    const bringBoxes = bringingContainer.querySelectorAll('input[type="checkbox"]');
+    bringBoxes.forEach((cb) => {
+      cb.checked = selectedCats.includes(cb.value);
+    });
+
+    bringingDetailsInput.value = rsvp.bringingDetails || '';
+    notesInput.value = rsvp.notes || '';
+
+    rsvpHeading.textContent = 'Update Your RSVP';
+    submitBtnLabel.textContent = 'Save RSVP Changes';
+    editingBanner.hidden = false;
+    editingBannerText.textContent = `✏️ Editing RSVP for ${rsvp.name || 'your party'}. Change any details below (or switch Attending to "No" to cancel).`;
+  }
+
+  function clearEditMode() {
+    activeEditToken = '';
+    form.reset();
+    syncAttendingSection();
+    rsvpHeading.textContent = 'Kindly RSVP';
+    submitBtnLabel.textContent = 'Submit RSVP';
+    editingBanner.hidden = true;
+    if (urlParams.has('edit')) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('edit');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
+  }
+
+  btnCancelEdit.addEventListener('click', () => {
+    clearEditMode();
+    nameInput.focus();
+  });
+
   // Consistent ARIA + Fallback Validation (from modern-web-guidance)
   function initAccessibleValidation() {
     const linkError = (el, shown) => {
@@ -440,7 +514,7 @@
     );
   }
 
-  // Local Mock Storage Helpers
+  // Local Mock Storage Helpers (supports create + update + cancel)
   function readMockRsvps() {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -451,8 +525,25 @@
 
   function saveMockRsvp(payload) {
     const existing = readMockRsvps();
-    existing.push({ ...payload, submittedAt: new Date().toISOString() });
+    const normEmail = (payload.email || '').trim().toLowerCase();
+    const idx = existing.findIndex(
+      (r) =>
+        (payload.editToken && r.editToken === payload.editToken) ||
+        (normEmail && (r.email || '').trim().toLowerCase() === normEmail)
+    );
+    const editToken =
+      (idx >= 0 && existing[idx].editToken) ||
+      payload.editToken ||
+      `mock-${Date.now()}`;
+    const record = { ...payload, editToken, submittedAt: new Date().toISOString() };
+
+    if (idx >= 0) {
+      existing[idx] = record;
+    } else {
+      existing.push(record);
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    return { record, updated: idx >= 0 };
   }
 
   function getMockContributions() {
@@ -496,7 +587,7 @@
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
-      `UID:sosa-christmas-2026@sosa-life.com`,
+      'UID:sosa-christmas-2026@sosa-life.com',
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTSTART:${ev.startIsoUtc}`,
       `DTEND:${ev.endIsoUtc}`,
@@ -539,7 +630,30 @@
     return true;
   }
 
+  function renderInlineContributions() {
+    if (!inlineContributionsList) return;
+    inlineContributionsList.innerHTML = '';
+
+    if (!allContributions.length) {
+      const li = document.createElement('li');
+      li.textContent = "Nothing listed yet—and remember, you don't need to bring a thing!";
+      inlineContributionsList.appendChild(li);
+      return;
+    }
+
+    for (const item of allContributions) {
+      const li = document.createElement('li');
+      const strong = document.createElement('strong');
+      strong.textContent = `${item.guestName || 'Guest'}: `;
+      const span = document.createElement('span');
+      span.textContent = item.itemDescription || item.category || 'Bringing an item';
+      li.append(strong, span);
+      inlineContributionsList.appendChild(li);
+    }
+  }
+
   function renderContributions() {
+    renderInlineContributions();
     contributionsList.innerHTML = '';
     const filtered = allContributions.filter((item) => matchesFilter(item, activeFilter));
 
@@ -578,7 +692,7 @@
     }
   }
 
-  async function loadContributions() {
+  async function loadContributions(editTokenToFetch = '') {
     contributionsStatus.hidden = false;
     contributionsStatus.textContent = 'Loading what others are bringing...';
 
@@ -587,11 +701,16 @@
         allContributions = getMockContributions();
         contributionsStatus.hidden = true;
         renderContributions();
+        if (editTokenToFetch) {
+          const match = readMockRsvps().find((r) => r.editToken === editTokenToFetch);
+          if (match) populateFormForEdit(match);
+        }
         return;
       }
 
       const getUrl = new URL(CONFIG.GAS_WEB_APP_URL);
       if (inviteKey) getUrl.searchParams.set('key', inviteKey);
+      if (editTokenToFetch) getUrl.searchParams.set('edit', editTokenToFetch);
 
       const res = await fetch(getUrl.toString(), { method: 'GET' });
       const text = await res.text();
@@ -608,6 +727,10 @@
       allContributions = [...(CONFIG.MOCK_CONTRIBUTIONS || []), ...(data.contributions || [])];
       contributionsStatus.hidden = true;
       renderContributions();
+
+      if (data.rsvp) {
+        populateFormForEdit(data.rsvp);
+      }
     } catch (err) {
       contributionsStatus.hidden = false;
       contributionsStatus.textContent =
@@ -629,7 +752,10 @@
     });
   });
 
-  btnRefresh.addEventListener('click', loadContributions);
+  btnRefresh.addEventListener('click', () => loadContributions(''));
+  if (btnInlineRefresh) {
+    btnInlineRefresh.addEventListener('click', () => loadContributions(''));
+  }
 
   // Form Submission
   form.addEventListener('submit', async (e) => {
@@ -647,6 +773,7 @@
     const attending = String(formData.get('attending') || '');
     const payload = {
       inviteKey: inviteKey,
+      editToken: activeEditToken,
       website: String(formData.get('website') || ''),
       name: String(formData.get('name') || '').trim(),
       email: String(formData.get('email') || '').trim(),
@@ -665,12 +792,20 @@
       let result;
       if (isMockMode) {
         await new Promise((r) => setTimeout(r, 300));
-        saveMockRsvp(payload);
+        const saved = saveMockRsvp(payload);
         result = {
           ok: true,
+          updated: saved.updated,
+          editToken: saved.record.editToken,
           emailSent: false,
           message:
-            "Thanks for letting us know! We'll see you there otherwise we wish you the happiest seasons greetings and a Merry Christmas!"
+            attending === 'No'
+              ? saved.updated
+                ? "Your RSVP has been updated to No. We'll miss you and wish you the happiest seasons greetings and a Merry Christmas!"
+                : "Thanks for letting us know! We'll miss you this year and wish you the happiest seasons greetings and a Merry Christmas!"
+              : saved.updated
+                ? "Your RSVP changes have been saved! Can't wait to celebrate with you on December 5th!"
+                : "Thanks for letting us know! We'll see you there otherwise we wish you the happiest seasons greetings and a Merry Christmas!"
         };
       } else {
         const response = await fetch(CONFIG.GAS_WEB_APP_URL, {
@@ -689,8 +824,13 @@
         }
       }
 
+      activeEditToken = result.editToken || activeEditToken;
+      lastSubmittedRsvp = { ...payload, editToken: activeEditToken };
+
       form.hidden = true;
+      editingBanner.hidden = true;
       confirmationPanel.hidden = false;
+      confirmationHeading.textContent = result.updated ? 'RSVP Updated!' : 'RSVP Received!';
       confirmationMessage.textContent = result.message;
 
       if (attending === 'Yes') {
@@ -700,18 +840,20 @@
         calendarActions.hidden = true;
       }
 
+      btnEditCurrent.hidden = !activeEditToken;
+
       if (result.emailSent) {
         confirmationEmailNote.hidden = false;
-        confirmationEmailNote.textContent = `A confirmation email with event details was sent to ${payload.email}.`;
+        confirmationEmailNote.textContent = `A confirmation email with calendar links and an edit/cancel link was sent to ${payload.email}.`;
       } else if (isMockMode && payload.email) {
         confirmationEmailNote.hidden = false;
-        confirmationEmailNote.textContent = `Preview mode: once connected to Google Apps Script, a confirmation email will be sent to ${payload.email}.`;
+        confirmationEmailNote.textContent = `Preview mode: once connected to Google Apps Script, a confirmation email with an edit/cancel link will be sent to ${payload.email}.`;
       } else {
         confirmationEmailNote.hidden = true;
       }
 
       confirmationPanel.focus();
-      await loadContributions();
+      await loadContributions('');
     } catch (err) {
       formStatus.hidden = false;
       formStatus.classList.add('is-error');
@@ -725,13 +867,20 @@
     }
   });
 
+  btnEditCurrent.addEventListener('click', () => {
+    if (!lastSubmittedRsvp) return;
+    confirmationPanel.hidden = true;
+    form.hidden = false;
+    populateFormForEdit(lastSubmittedRsvp);
+    nameInput.focus();
+  });
+
   btnResetForm.addEventListener('click', () => {
-    form.reset();
-    syncAttendingSection();
+    clearEditMode();
     confirmationPanel.hidden = true;
     form.hidden = false;
     formStatus.hidden = true;
-    document.getElementById('rsvp-name').focus();
+    nameInput.focus();
   });
 
   // Boot
@@ -740,5 +889,5 @@
   renderFaqs();
   initAccessibleValidation();
   syncAttendingSection();
-  loadContributions();
+  loadContributions(initialEditToken);
 })();

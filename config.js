@@ -12,9 +12,9 @@ window.PARTY_CONFIG = {
     title: "2026 Christmas with the Sosa's",
     subtitle:
       "We celebrate Christmas so that's our anchor holiday, but if you're invited, you're welcome no matter how you ring in the season.",
-    dateDisplay: 'Saturday, December 5, 2026 @ 6:00 PM',
-    startIsoUtc: '20261205T230000Z',
-    endIsoUtc: '20261206T040000Z',
+    dateDisplay: 'Saturday, December 5, 2026 @ 5:00 PM',
+    startIsoUtc: '20261205T220000Z',
+    endIsoUtc: '20261206T030000Z',
     address: '8700 Green Apple Court, Wake Forest, NC',
     mapsUrl: 'https://maps.google.com/?q=8700+Green+Apple+Court,+Wake+Forest,+NC',
     whiteElephantAnnouncement:
