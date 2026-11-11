@@ -977,6 +977,8 @@ summary:focus-visible,
 
   .contributions-table td:nth-child(2)::before {
     content: var(--label-2) ": ";
+    display: block;
+    margin-bottom: 0.25rem;
     font-weight: 700;
     color: var(--text-muted);
   }

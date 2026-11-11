@@ -2,7 +2,59 @@
   'use strict';
 
   const STORAGE_KEY = 'sosa_2026_rsvps';
+  const EDIT_TOKEN_COOKIE = 'sosa_2026_edit_token';
   const SNOWFLAKE_GLYPHS = ['❄', '❅', '❆'];
+
+  function getSavedEditToken() {
+    try {
+      const cookies = document.cookie ? document.cookie.split(';') : [];
+      for (const part of cookies) {
+        const [rawName, ...rest] = part.trim().split('=');
+        if (rawName === EDIT_TOKEN_COOKIE) {
+          const val = decodeURIComponent(rest.join('=')).trim();
+          if (val) return val;
+        }
+      }
+    } catch {
+      // Ignore cookie read errors
+    }
+    try {
+      return (localStorage.getItem(EDIT_TOKEN_COOKIE) || '').trim();
+    } catch {
+      return '';
+    }
+  }
+
+  function saveEditToken(token) {
+    const clean = String(token || '').trim();
+    if (!clean) return;
+    try {
+      const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+      // 180-day first-party cookie so returning guests on the same device auto-load their RSVP
+      document.cookie = `${EDIT_TOKEN_COOKIE}=${encodeURIComponent(clean)}; Max-Age=15552000; Path=/; SameSite=Lax${secureFlag}`;
+    } catch {
+      // Ignore cookie write errors
+    }
+    try {
+      localStorage.setItem(EDIT_TOKEN_COOKIE, clean);
+    } catch {
+      // Ignore storage write errors
+    }
+  }
+
+  function clearSavedEditToken() {
+    try {
+      const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `${EDIT_TOKEN_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax${secureFlag}`;
+    } catch {
+      // Ignore cookie clear errors
+    }
+    try {
+      localStorage.removeItem(EDIT_TOKEN_COOKIE);
+    } catch {
+      // Ignore storage remove errors
+    }
+  }
 
   /**
    * 60fps mobile-friendly looping snowfall & drifting large snowflakes background.
@@ -136,7 +188,8 @@
   const isMockMode = !CONFIG.GAS_WEB_APP_URL || CONFIG.GAS_WEB_APP_URL.startsWith('REPLACE_');
   const urlParams = new URLSearchParams(window.location.search);
   const inviteKey = urlParams.get('key') || '';
-  const initialEditToken = urlParams.get('edit') || '';
+  const urlEditToken = (urlParams.get('edit') || '').trim();
+  const initialEditToken = urlEditToken || getSavedEditToken();
 
   // DOM References
   const mockBanner = document.getElementById('mock-mode-banner');
@@ -332,6 +385,11 @@
   function populateFormForEdit(rsvp) {
     if (!rsvp) return;
     activeEditToken = rsvp.editToken || activeEditToken;
+    if (activeEditToken) {
+      saveEditToken(activeEditToken);
+    }
+    lastSubmittedRsvp = { ...rsvp, editToken: activeEditToken };
+
     nameInput.value = rsvp.name || '';
     emailInput.value = rsvp.email || '';
 
@@ -342,8 +400,10 @@
     }
     syncAttendingSection();
 
-    if (rsvp.partySize) {
+    if (rsvp.partySize && String(rsvp.partySize) !== '0') {
       partySizeSelect.value = String(rsvp.partySize);
+    } else {
+      partySizeSelect.selectedIndex = 0;
     }
 
     if (kidsUnder10Select) {
@@ -364,6 +424,14 @@
     bringingDetailsInput.value = rsvp.bringingDetails || '';
     notesInput.value = rsvp.notes || '';
 
+    // Clear any prior validation error states on pre-filled fields
+    form.querySelectorAll('input, select, textarea').forEach((el) => {
+      el.classList.remove('user-invalid-fallback');
+      if (el.getAttribute('aria-invalid') === 'true') {
+        el.setAttribute('aria-invalid', 'false');
+      }
+    });
+
     rsvpHeading.textContent = 'Update Your RSVP';
     submitBtnLabel.textContent = 'Save RSVP Changes';
     editingBanner.hidden = false;
@@ -372,6 +440,7 @@
 
   function clearEditMode() {
     activeEditToken = '';
+    clearSavedEditToken();
     form.reset();
     syncAttendingSection();
     rsvpHeading.textContent = 'Kindly RSVP';
@@ -615,19 +684,32 @@
   }
 
   // Calendar Helpers
+  function getCleanInviteUrl() {
+    try {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('edit');
+      cleanUrl.hash = '';
+      return cleanUrl.toString();
+    } catch {
+      return window.location.href;
+    }
+  }
+
   function buildGoogleCalendarUrl() {
     const ev = CONFIG.EVENT;
+    const inviteUrl = getCleanInviteUrl();
     return (
       'https://calendar.google.com/calendar/render?action=TEMPLATE' +
       '&text=' + encodeURIComponent(ev.title) +
       '&dates=' + encodeURIComponent(`${ev.startIsoUtc}/${ev.endIsoUtc}`) +
       '&location=' + encodeURIComponent(ev.address) +
-      '&details=' + encodeURIComponent(`White Elephant (aka Dirty Santa, $40 max avg) & Event Details: ${window.location.href}`)
+      '&details=' + encodeURIComponent(`White Elephant (aka Dirty Santa, $40 max avg) & Event Details: ${inviteUrl}`)
     );
   }
 
   function downloadIcsFile() {
     const ev = CONFIG.EVENT;
+    const inviteUrl = getCleanInviteUrl();
     const escapedAddress = ev.address.replace(/,/g, '\\,');
     const icsContent = [
       'BEGIN:VCALENDAR',
@@ -642,7 +724,7 @@
       `DTEND:${ev.endIsoUtc}`,
       `SUMMARY:${ev.title}`,
       `LOCATION:${escapedAddress}`,
-      `DESCRIPTION:We can't wait to celebrate with you! White Elephant (aka Dirty Santa) gift exchange ($40 max avg). Details: ${window.location.href}`,
+      `DESCRIPTION:We can't wait to celebrate with you! White Elephant (aka Dirty Santa) gift exchange ($40 max avg). Details: ${inviteUrl}`,
       'END:VEVENT',
       'END:VCALENDAR'
     ].join('\r\n');
@@ -760,7 +842,12 @@
         renderContributions();
         if (editTokenToFetch) {
           const match = readMockRsvps().find((r) => r.editToken === editTokenToFetch);
-          if (match) populateFormForEdit(match);
+          if (match) {
+            populateFormForEdit(match);
+          } else if (!urlEditToken) {
+            clearSavedEditToken();
+            activeEditToken = '';
+          }
         }
         return;
       }
@@ -787,6 +874,10 @@
 
       if (data.rsvp) {
         populateFormForEdit(data.rsvp);
+      } else if (editTokenToFetch && !urlEditToken) {
+        // Stale cookie token (e.g. row removed from Sheet); clear so guest starts clean
+        clearSavedEditToken();
+        activeEditToken = '';
       }
     } catch (err) {
       contributionsStatus.hidden = false;
@@ -883,6 +974,9 @@
       }
 
       activeEditToken = result.editToken || activeEditToken;
+      if (activeEditToken) {
+        saveEditToken(activeEditToken);
+      }
       lastSubmittedRsvp = { ...payload, editToken: activeEditToken };
 
       form.hidden = true;
