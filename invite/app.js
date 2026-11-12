@@ -245,6 +245,14 @@
   let activeFilter = 'all';
   let activeEditToken = initialEditToken;
   let lastSubmittedRsvp = null;
+  let userHasInteractedWithForm = false;
+
+  form.addEventListener('input', () => {
+    userHasInteractedWithForm = true;
+  });
+  form.addEventListener('change', () => {
+    userHasInteractedWithForm = true;
+  });
 
   // Show local preview banner only on localhost
   if (
@@ -879,7 +887,12 @@
       renderContributions();
 
       if (data.rsvp) {
-        populateFormForEdit(data.rsvp);
+        if (!userHasInteractedWithForm) {
+          populateFormForEdit(data.rsvp);
+        } else if (data.rsvp.editToken) {
+          activeEditToken = data.rsvp.editToken;
+          saveEditToken(activeEditToken);
+        }
       } else if (editTokenToFetch && !urlEditToken) {
         // Stale cookie token (e.g. row removed from Sheet); clear so guest starts clean
         clearSavedEditToken();
@@ -951,8 +964,8 @@
       kidsUnder10: attending === 'Yes' ? String(formData.get('kidsUnder10') || '0') : '0',
       whiteElephant: attending === 'Yes' ? String(formData.get('whiteElephant') || '') : '',
       bringingCategories: attending === 'Yes' ? formData.getAll('bringingCategories') : [],
-      bringingDetails: attending === 'Yes' ? String(formData.get('bringingDetails') || '').trim() : '',
-      notes: attending === 'Yes' ? String(formData.get('notes') || '').trim() : ''
+      bringingDetails: attending === 'Yes' ? String(bringingDetailsInput.value || '').trim() : '',
+      notes: attending === 'Yes' ? String(notesInput.value || '').trim() : ''
     };
 
     submitBtn.disabled = true;

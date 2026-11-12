@@ -213,6 +213,94 @@ function findContributionRow(contributionsSheet, editToken, guestName) {
 }
 
 /**
+ * Reconciles and returns the public-safe list of guest contributions directly from
+ * "Form Responses 1" (and any manual edits in "Guest Contributions"), keeping both tabs in sync.
+ */
+function syncAndGetContributions(ss) {
+  const responsesSheet = ss.getSheetByName(SHEET_RESPONSES);
+  const contributionsSheet = ss.getSheetByName(SHEET_CONTRIBUTIONS);
+
+  const existingContribMapByToken = {};
+  const existingContribMapByName = {};
+  const contribLastRow = contributionsSheet.getLastRow();
+  if (contribLastRow > 1) {
+    const contribNumCols = Math.max(contributionsSheet.getLastColumn(), 4);
+    const contribRows = contributionsSheet.getRange(2, 1, contribLastRow - 1, contribNumCols).getValues();
+    for (let i = 0; i < contribRows.length; i++) {
+      const cName = String(contribRows[i][0] || '').trim();
+      const cDesc = String(contribRows[i][2] || '').trim();
+      const cTok = String(contribRows[i][3] || '').trim();
+      if (cTok) existingContribMapByToken[cTok] = cDesc;
+      if (cName) existingContribMapByName[cName.toLowerCase()] = cDesc;
+    }
+  }
+
+  const respLastRow = responsesSheet.getLastRow();
+  const contributions = [];
+  const syncedSheetRows = [];
+
+  if (respLastRow > 1) {
+    const respNumCols = Math.max(responsesSheet.getLastColumn(), 11);
+    const respRows = responsesSheet.getRange(2, 1, respLastRow - 1, respNumCols).getValues();
+
+    for (let i = 0; i < respRows.length; i++) {
+      const row = respRows[i];
+      const guestName = String(row[2] || '').trim();
+      const attending = String(row[3] || '').trim();
+      if (attending !== 'Yes' || !guestName) continue;
+
+      const rawCats = splitCategories(row[5]);
+      const cleanedCats = rawCats.map(formatCategoryForDisplay).filter(Boolean);
+      const categoryDisplay = cleanedCats.join(' | ');
+      const fallbackCatComma = cleanedCats.join(', ');
+      const rawCatComma = rawCats.join(', ');
+
+      let itemDesc = String(row[6] || '').trim();
+      const editToken = String(row[9] || '').trim();
+
+      // If Form Responses 1 column G was empty, check if Guest Contributions has a custom description
+      if (!itemDesc || itemDesc === fallbackCatComma || itemDesc === rawCatComma) {
+        const fromContrib =
+          (editToken && existingContribMapByToken[editToken]) ||
+          existingContribMapByName[guestName.toLowerCase()] ||
+          '';
+        if (fromContrib && fromContrib !== fallbackCatComma && fromContrib !== rawCatComma) {
+          itemDesc = fromContrib;
+          responsesSheet.getRange(i + 2, 7).setValue(itemDesc);
+        }
+      }
+
+      const isBringing =
+        (categoryDisplay && !categoryDisplay.startsWith('Nothing')) || itemDesc;
+      if (isBringing) {
+        const finalDesc = itemDesc || fallbackCatComma;
+        contributions.push({
+          guestName: guestName,
+          category: categoryDisplay || 'Drink, Dish, or Treat',
+          itemDescription: finalDesc
+        });
+        syncedSheetRows.push([
+          guestName,
+          categoryDisplay || 'Drink, Dish, or Treat',
+          finalDesc,
+          editToken
+        ]);
+      }
+    }
+  }
+
+  // Keep Guest Contributions tab cleanly synced with Form Responses 1
+  if (contribLastRow > 1) {
+    contributionsSheet.getRange(2, 1, contribLastRow - 1, 4).clearContent();
+  }
+  if (syncedSheetRows.length > 0) {
+    contributionsSheet.getRange(2, 1, syncedSheetRows.length, 4).setValues(syncedSheetRows);
+  }
+
+  return contributions;
+}
+
+/**
  * GET endpoint:
  * - Always returns the public list of drinks, dishes, or treats guests are bringing (no emails).
  * - If `?edit=<EDIT_TOKEN>` is supplied, also returns that single guest's RSVP for editing.
@@ -226,23 +314,7 @@ function doGet(e) {
 
     setupSheet();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const contributionsSheet = ss.getSheetByName(SHEET_CONTRIBUTIONS);
-    const lastRow = contributionsSheet.getLastRow();
-
-    const contributions = [];
-    if (lastRow > 1) {
-      const values = contributionsSheet.getRange(2, 1, lastRow - 1, 3).getValues();
-      for (let i = 0; i < values.length; i++) {
-        const [guestName, category, itemDescription] = values[i];
-        if (category || itemDescription) {
-          contributions.push({
-            guestName: String(guestName || '').trim(),
-            category: String(category || '').trim(),
-            itemDescription: String(itemDescription || '').trim()
-          });
-        }
-      }
-    }
+    const contributions = syncAndGetContributions(ss);
 
     let rsvp = null;
     const editToken = e && e.parameter ? String(e.parameter.edit || '').trim() : '';
@@ -370,26 +442,7 @@ function doPost(e) {
       responsesSheet.appendRow(rowValues);
     }
 
-    const isBringingSomething =
-      attending === 'Yes' &&
-      ((bringingCategoriesStored && !bringingCategoriesStored.startsWith('Nothing')) || bringingDetails);
-
-    const contribRowIndex = findContributionRow(contributionsSheet, editToken, previousName);
-    if (isBringingSomething) {
-      const contribValues = [
-        name,
-        cleanedCategoriesDisplay || 'Drink, Dish, or Treat',
-        bringingDetails || cleanedCategoriesList.join(', '),
-        editToken
-      ];
-      if (contribRowIndex > 1) {
-        contributionsSheet.getRange(contribRowIndex, 1, 1, 4).setValues([contribValues]);
-      } else {
-        contributionsSheet.appendRow(contribValues);
-      }
-    } else if (contribRowIndex > 1) {
-      contributionsSheet.deleteRow(contribRowIndex);
-    }
+    syncAndGetContributions(ss);
 
     let emailSent = false;
     if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

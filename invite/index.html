@@ -30,9 +30,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=10">
-  <script defer src="../config.js?v=10"></script>
-  <script defer src="./app.js?v=10"></script>
+  <link rel="stylesheet" href="./styles.css?v=11">
+  <script defer src="../config.js?v=11"></script>
+  <script defer src="./app.js?v=11"></script>
 </head>
 <body>
   <canvas id="snow-canvas" aria-hidden="true"></canvas>
@@ -96,7 +96,7 @@
               <span class="faq-outer-label">❓ Frequently Asked Questions</span>
               <span class="faq-outer-hint">Food &amp; Drinks, Kids, White Elephant</span>
             </div>
-            <span class="faq-outer-chevron" aria-hidden="true">▾</span>
+            <span class="drawer-toggle-icon" aria-hidden="true"></span>
           </summary>
           <div id="faq-list" class="faq-list faq-outer-body"></div>
         </details>
@@ -257,7 +257,10 @@
 
             <!-- Inline preview of what others are bringing right next to the bringing fields -->
             <details class="inline-contributions-drawer" id="inline-contributions-drawer">
-              <summary>👀 See what drinks, dishes &amp; treats others are bringing</summary>
+              <summary>
+                <span>👀 See what drinks, dishes &amp; treats others are bringing</span>
+                <span class="drawer-toggle-icon" aria-hidden="true"></span>
+              </summary>
               <div class="inline-drawer-body">
                 <div class="inline-drawer-toolbar">
                   <span class="hint">Refresh the page (or tap Refresh) to see the latest list.</span>
